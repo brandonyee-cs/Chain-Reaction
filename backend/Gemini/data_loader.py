@@ -1,5 +1,7 @@
 from backend.Gemini.weather import WeatherAPI
 from backend.Gemini.web_scraper import WebScraper
+import yfinance as yf
+import wbgapi as wb
 
 class DataLoader:
     def __init__(self):
@@ -34,8 +36,34 @@ class DataLoader:
         results = scraper.scrape_urls(url)
         return results
     
+    def get_stock_data(self):
+        # sample
+        dat = yf.Ticker("MSFT")
+        # multiple tickers
+        tickers = yf.Tickers('MSFT AAPL GOOG')
+        tickers.tickers['MSFT'].info
+        yf.download(['MSFT', 'AAPL', 'GOOG'], period='1mo')
+        # Funds
+        spy = yf.Ticker('SPY').funds_data
+        spy.description
+        spy.top_holdings
+
     def get_economic_data(self):
-        pass
+         # List available databases
+        sources = wb.source.info()
+
+        # Fetch GDP data for the USA from 2010 to 2019
+        gdp_data = wb.data.DataFrame('NY.GDP.MKTP.CD', economy='USA', time=range(2010, 2020))
+
+        # Retrieve general economic information about the USA
+        economy_info = wb.economy.info(q='USA')
+
+        # Return structured data
+        return {
+            "sources": sources, 
+            "gdp_data": gdp_data,
+            "economy_info": economy_info
+        }
 
     def get_small_business_data(self, name : str):
         pass
