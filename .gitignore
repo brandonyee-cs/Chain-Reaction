@@ -169,7 +169,3 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
-
-# Enviorment Variables & API Keys
-.env
-key.json
