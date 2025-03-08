@@ -17,20 +17,17 @@ const RiskSelection = ({ onSelectRisk }) => {
       { threshold: 10000, color: '#16a34a' }  // Bright green
     ];
 
-    // Find the appropriate color based on amount
+    // math for color based on sliding amount!! 
     for (let i = 0; i < phases.length; i++) {
       if (amount <= phases[i].threshold) {
         if (i === 0) return phases[i].color;
         
-        // Calculate percentage between this threshold and previous
         const range = phases[i].threshold - phases[i-1].threshold;
         const progress = (amount - phases[i-1].threshold) / range;
         
-        // Interpolate between colors
         const color1 = phases[i-1].color;
         const color2 = phases[i].color;
         
-        // Convert hex to RGB and interpolate
         const r1 = parseInt(color1.slice(1,3), 16);
         const g1 = parseInt(color1.slice(3,5), 16);
         const b1 = parseInt(color1.slice(5,7), 16);
@@ -207,7 +204,6 @@ const RiskSelection = ({ onSelectRisk }) => {
             color: white;
             cursor: pointer;
             position: relative;
-            overflow: visible;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -216,46 +212,9 @@ const RiskSelection = ({ onSelectRisk }) => {
             background-size: 200% auto;
           }
 
-          .risk-button::before {
-            content: '';
-            position: absolute;
-            inset: -4px;
-            border-radius: 16px;
-            padding: 4px;
-            background: conic-gradient(
-              from 0deg at 50% 50%,
-              transparent 0%,
-              transparent 25%,
-              white 25%,
-              white 50%,
-              transparent 50%,
-              transparent 100%
-            );
-            -webkit-mask: 
-              linear-gradient(#fff 0 0) content-box, 
-              linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0;
-            transition: opacity 0.3s;
-          }
-
           .risk-button:hover {
             transform: translateY(-2px);
-          }
-
-          .risk-button:hover::before {
-            opacity: 1;
-            animation: spin 2s linear infinite;
-          }
-
-          @keyframes spin {
-            from {
-              transform: rotate(0deg);
-            }
-            to {
-              transform: rotate(360deg);
-            }
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
           }
 
           .risk-button span {
