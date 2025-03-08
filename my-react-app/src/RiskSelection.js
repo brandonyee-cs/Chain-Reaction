@@ -6,6 +6,8 @@ const RiskSelection = ({ onSelectRisk }) => {
   const [particles, setParticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [budget, setBudget] = useState(500);
+  const [isEditing, setIsEditing] = useState(false);
+  const [inputValue, setInputValue] = useState('500');
 
   const getBudgetColor = (amount) => {
     // Define thresholds for different phases
@@ -116,6 +118,37 @@ const RiskSelection = ({ onSelectRisk }) => {
       x: e.clientX,
       y: e.clientY
     });
+  };
+
+  const handleBudgetInput = (value) => {
+    // Allow any numeric input
+    const cleanValue = value.replace(/[^0-9]/g, '');
+    setInputValue(cleanValue);
+    
+    // Only update budget if there's a valid number
+    if (cleanValue !== '') {
+      const numValue = parseInt(cleanValue);
+      // When setting the actual budget, enforce limits
+      if (numValue < 500) {
+        setBudget(500);
+      } else if (numValue > 10000) {
+        setBudget(10000);
+      } else {
+        setBudget(numValue);
+      }
+    }
+  };
+
+  // Add a new function to handle when input is complete
+  const handleInputComplete = () => {
+    if (inputValue === '' || parseInt(inputValue) < 500) {
+      setBudget(500);
+      setInputValue('500');
+    } else if (parseInt(inputValue) > 10000) {
+      setBudget(10000);
+      setInputValue('10000');
+    }
+    setIsEditing(false);
   };
 
   if (loading) {
@@ -335,6 +368,31 @@ const RiskSelection = ({ onSelectRisk }) => {
             margin: 20px 0;
             transition: color 0.3s ease;
             text-align: center;
+            cursor: pointer;
+            user-select: none;
+          }
+
+          .budget-input {
+            font-size: 72px;
+            font-weight: 800;
+            margin: 20px 0;
+            text-align: center;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: inherit;
+            width: 100%;
+            font-family: inherit;
+          }
+
+          .budget-input::-webkit-inner-spin-button,
+          .budget-input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+          }
+
+          .budget-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
           }
 
           .budget-label {
@@ -445,16 +503,36 @@ const RiskSelection = ({ onSelectRisk }) => {
         </h2>
       </div>
 
-      <div className="budget-slider" style={{ 
-        position: 'relative', 
-        zIndex: 2,
-        marginTop: '0px'
-      }}>
-        <div className="budget-display" style={{ color: getBudgetColor(budget) }}>
-          {formatBudget(budget)}
-        </div>
+      <div className="budget-slider" style={{ position: 'relative', zIndex: 2, marginTop: '0px' }}>
+        {isEditing ? (
+          <input
+            type="text"
+            className="budget-input"
+            value={inputValue}
+            onChange={(e) => handleBudgetInput(e.target.value)}
+            onBlur={handleInputComplete}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleInputComplete();
+              }
+            }}
+            style={{ color: getBudgetColor(budget) }}
+            autoFocus
+          />
+        ) : (
+          <div 
+            className="budget-display" 
+            style={{ color: getBudgetColor(budget) }}
+            onClick={() => {
+              setIsEditing(true);
+              setInputValue(budget.toString());
+            }}
+          >
+            {formatBudget(budget)}
+          </div>
+        )}
         <div className="budget-label" style={{ color: '#ffffff' }}>
-          Drag the slider to set your investment budget
+          {isEditing ? 'Enter amount or use slider' : 'Click amount to edit or use slider'}
         </div>
         <input
           type="range"
@@ -465,6 +543,7 @@ const RiskSelection = ({ onSelectRisk }) => {
             const newBudget = parseInt(e.target.value);
             console.log('Budget updated:', newBudget);
             setBudget(newBudget);
+            setInputValue(newBudget.toString());
           }}
           style={{
             background: `linear-gradient(90deg, ${getBudgetColor(budget)} ${((budget-500)/9500)*100}%, rgba(255, 255, 255, 0.1) ${((budget-500)/9500)*100}%)`
