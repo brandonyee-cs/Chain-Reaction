@@ -1,3 +1,7 @@
+"""
+Test script for stock analysis using different risk profiles.
+"""
+
 import os
 import sys
 from pathlib import Path
@@ -84,8 +88,8 @@ def get_stock_data(ticker, period='2y'):
         print(f"Error getting data for {ticker}: {str(e)}")
         return None
 
-def test_model_with_stocks(tickers):
-    """Test the model with multiple stocks using real market data"""
+def analyze_stocks(tickers):
+    """Analyze multiple stocks using all risk profiles"""
     results = {}
     
     for ticker in tickers:
@@ -115,6 +119,10 @@ def test_model_with_stocks(tickers):
             for risk_profile in RiskProfile:
                 recommendation = get_investment_recommendation(analysis, risk_profile)
                 print(f"{risk_profile.value}: {recommendation['recommendation']} (Score: {recommendation['investment_score']:.2f})")
+                if recommendation['risk_notes']:
+                    print("Risk Notes:")
+                    for note in recommendation['risk_notes']:
+                        print(f"- {note}")
                 
         except Exception as e:
             print(f"Error analyzing {ticker}: {str(e)}")
@@ -158,17 +166,49 @@ def plot_results_heatmap(results):
     plt.tight_layout()
     plt.show()
 
+def plot_risk_profile_distributions(results):
+    """Plot the distribution of scores for each risk profile"""
+    
+    scores_by_profile = {rp.value: [] for rp in RiskProfile}
+    
+    # Collect scores for each risk profile
+    for ticker in results:
+        for risk_profile in RiskProfile:
+            score = results[ticker][risk_profile.value]['investment_score']['investment_score']
+            scores_by_profile[risk_profile.value].append(score)
+    
+    # Create violin plots
+    plt.figure(figsize=(10, 6))
+    data = [scores_by_profile[rp.value] for rp in RiskProfile]
+    labels = [rp.value for rp in RiskProfile]
+    
+    parts = plt.violinplot(data, showmeans=True)
+    
+    # Customize plot
+    plt.xticks(range(1, len(labels) + 1), labels)
+    plt.title('Distribution of Investment Scores by Risk Profile')
+    plt.ylabel('Investment Score')
+    plt.ylim(0, 1)
+    
+    # Add mean values
+    means = [np.mean(scores) for scores in data]
+    for i, mean in enumerate(means, 1):
+        plt.text(i, mean, f'μ={mean:.2f}', horizontalalignment='center', verticalalignment='bottom')
+    
+    plt.show()
+
 def main():
-    """Main function to run the tests"""
+    """Main function to run the analysis"""
     # Test with popular tech stocks
     tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA', 'NFLX', 'NVDA']
     
-    print("Testing stock investment model with multiple risk profiles...")
-    results = test_model_with_stocks(tickers)
+    print("Analyzing stocks with multiple risk profiles...")
+    results = analyze_stocks(tickers)
     
     if results:
-        print("\nPlotting results heatmap...")
+        print("\nPlotting results...")
         plot_results_heatmap(results)
+        plot_risk_profile_distributions(results)
     else:
         print("No results to plot.")
 
