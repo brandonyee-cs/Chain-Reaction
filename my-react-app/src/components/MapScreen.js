@@ -658,7 +658,7 @@ const MapScreen = ({ budget }) => {
                       e.target.style.filter = 'brightness(1)';
                     }}
                   >
-                    Invest Now
+                    Learn More
                   </button>
                 </div>
               </Popup>
