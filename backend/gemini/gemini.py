@@ -1,4 +1,4 @@
-from backend.Gemini.data_loader import DataLoader
+from backend.gemini.data_loader import DataLoader
 
 import google.generativeai as genai
 from typing import Optional

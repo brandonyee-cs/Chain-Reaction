@@ -36,18 +36,6 @@ class DataLoader:
         results = scraper.scrape_urls(url)
         return results
     
-    def get_stock_data(self):
-        # sample
-        dat = yf.Ticker("MSFT")
-        # multiple tickers
-        tickers = yf.Tickers('MSFT AAPL GOOG')
-        tickers.tickers['MSFT'].info
-        yf.download(['MSFT', 'AAPL', 'GOOG'], period='1mo')
-        # Funds
-        spy = yf.Ticker('SPY').funds_data
-        spy.description
-        spy.top_holdings
-
     def get_economic_data(self):
          # List available databases
         sources = wb.source.info()
@@ -59,11 +47,7 @@ class DataLoader:
         economy_info = wb.economy.info(q='USA')
 
         # Return structured data
-        return {
-            "sources": sources, 
-            "gdp_data": gdp_data,
-            "economy_info": economy_info
-        }
+        return [["gdp_data", gdp_data], ["economy_info", economy_info]]
 
     def get_small_business_data(self, name : str):
         #Implement API call to get small business data
