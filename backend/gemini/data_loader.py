@@ -168,7 +168,7 @@ class SmallBusinessDataLoader:
             "BTFLI": "Bathtub Refinishing Long Island",
             "MST": "Main Street Taiwanese",
             "ANDA": "Anda Cafe Flushing",
-            "ARONS": "Aron's Kisena Farms",
+            "ARONS": "Aron's Kissena Farms",
             "FARS": "Flushing Appliance Repair Specialists",
             "OTNPP": "Pizza Professor",
             "TSB": "The Sandwich Bar",

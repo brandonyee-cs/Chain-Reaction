@@ -412,24 +412,17 @@ const getBusinessIcon = (business) => {
     html: `
       <div style="
         background-color: ${color};
-        width: 36px;
-        height: 36px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
-        border: 3px solid white;
-        box-shadow: 0 0 4px rgba(0,0,0,0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        color: white;
-        font-weight: bold;
+        border: 2px solid white;
+        box-shadow: 0 0 4px rgba(0,0,0,0.3);
       ">
-        ${business.business_type.charAt(0)}
       </div>
     `,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
-    popupAnchor: [0, -18],
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -12],
   });
 };
 
@@ -578,45 +571,29 @@ const MapScreen = ({ budget }) => {
               }}
             >
               <Popup>
-                <div style={{ padding: "10px", maxWidth: "300px" }}>
+                <div style={{ 
+                  padding: "12px", 
+                  maxWidth: "200px",
+                  textAlign: "center"
+                }}>
                   <h3 style={{ 
-                    marginBottom: "8px", 
-                    color: "#1a1a1a",
-                    borderBottom: `3px solid ${getRevenueColor(business.annual_revenue)}`,
-                    paddingBottom: "5px"
+                    marginBottom: "12px", 
+                    color: "#000000",
+                    fontSize: "16px",
+                    fontWeight: "600"
                   }}>{business.name}</h3>
-                  <p style={{ color: "#666", marginBottom: "5px" }}>Type: {business.business_type}</p>
-                  <p style={{ color: "#666", marginBottom: "5px" }}>
-                    Address: {business.address}
-                  </p>
-                  <p style={{ color: "#666", marginBottom: "5px" }}>
-                    Established: {business.established}
-                  </p>
-                  <p style={{ color: "#666", marginBottom: "5px" }}>
-                    Employees: {business.employees}
-                  </p>
-                  <p style={{ color: "#666", marginBottom: "10px", fontSize: "0.9em" }}>
-                    Annual Revenue: ${business.annual_revenue.toLocaleString()}
-                  </p>
-                  <p style={{ 
-                    color: business.investment_needed <= budget ? "#15803d" : "#dc2626",
-                    fontWeight: "600",
-                    marginBottom: "15px"
-                  }}>
-                    Investment Needed: ${business.investment_needed.toLocaleString()}
-                  </p>
                   <button
                     style={{
-                      marginTop: "10px",
                       padding: "8px 16px",
-                      backgroundColor: "#059669",
+                      backgroundColor: "#10b981",
                       color: "white",
                       border: "none",
-                      borderRadius: "4px",
+                      borderRadius: "6px",
                       cursor: "pointer",
                       width: "100%",
                       transition: "all 0.2s",
-                      fontWeight: "600"
+                      fontWeight: "600",
+                      fontSize: "14px"
                     }}
                     onClick={() => {
                       setShowBusinessDetails(true);
@@ -630,7 +607,7 @@ const MapScreen = ({ budget }) => {
                       e.target.style.filter = 'brightness(1)';
                     }}
                   >
-                    View Business Details
+                    Invest Now
                   </button>
                 </div>
               </Popup>
