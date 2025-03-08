@@ -269,11 +269,11 @@ class StockInvestmentModel:
         """
         if score > 0.80:
             return "Strong Buy"
-        elif score > 0.65:
+        elif score > 0.45:
             return "Buy"
-        elif score > 0.50:
-            return "Hold"
         elif score > 0.35:
+            return "Hold"
+        elif score > 0.20:
             return "Reduce"
         else:
             return "Sell"

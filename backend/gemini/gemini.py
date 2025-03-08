@@ -186,6 +186,7 @@ class Gemini:
             - Only include real companies on major exchanges
             - Use official ticker symbols
             - Focus on market leaders
+            = Only include the tickers, no additional information as per the stated format
             """
             
             # Generate content with stream=False for Gemini 2.0 Lite
