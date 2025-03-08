@@ -16,6 +16,7 @@ import React, { useEffect, useRef, useState } from "react";
 import ETFDetail from "./ETFDetail";
 import ETFPieChart from "./ETFPieChart";
 import LandingPage from "./LandingPage";
+import RiskSelection from "./RiskSelection";
 
 const styles = `
   * {
@@ -695,6 +696,8 @@ const mockETFs = [
 
 const App = () => {
   const [showLandingPage, setShowLandingPage] = useState(true);
+  const [showRiskSelection, setShowRiskSelection] = useState(false);
+  const [riskLevel, setRiskLevel] = useState(null);
   const [showInvestPage, setShowInvestPage] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [selectedETF, setSelectedETF] = useState(null);
@@ -709,6 +712,24 @@ const App = () => {
 
   const handleLogin = () => {
     setShowLandingPage(false);
+    setShowRiskSelection(true);
+  };
+
+  const handleRiskSelection = (level) => {
+    console.log('Risk Level Selected:', level);
+    setRiskLevel(level);
+    setShowRiskSelection(false);
+  };
+
+  // Add useEffect to monitor risk level changes
+  useEffect(() => {
+    console.log('Current Risk Level State:', riskLevel);
+  }, [riskLevel]);
+
+  const handleLogout = () => {
+    setShowLandingPage(true);
+    setShowRiskSelection(false);
+    setRiskLevel(null);
   };
 
   const handleOpenInvestPage = (supplier = null) => {
@@ -777,6 +798,10 @@ const App = () => {
 
   if (showLandingPage) {
     return <LandingPage onLogin={handleLogin} />;
+  }
+
+  if (showRiskSelection) {
+    return <RiskSelection onSelectRisk={handleRiskSelection} />;
   }
 
   const renderDashboard = () => (
@@ -1334,7 +1359,7 @@ const App = () => {
             </button>
             <button
               className="logout-btn"
-              onClick={() => setShowLandingPage(true)}
+              onClick={handleLogout}
             >
               Logout
             </button>
