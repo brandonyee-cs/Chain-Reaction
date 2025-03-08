@@ -66,4 +66,5 @@ class DataLoader:
         }
 
     def get_small_business_data(self, name : str):
+        #Implement API call to get small business data
         pass
