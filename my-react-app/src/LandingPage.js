@@ -44,6 +44,38 @@ const LandingPage = ({ onLogin }) => {
             75% { transform: translate(10px, 10px); }
           }
 
+          .glow-spots {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            z-index: 1;
+            pointer-events: none;
+          }
+
+          .glow-spot {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, rgba(255, 165, 0, 0), rgba(255, 165, 0, 0));
+            transition: background 0.5s ease;
+            pointer-events: auto;
+            cursor: pointer;
+            margin: auto;
+          }
+
+          .glow-spot:hover {
+            background: radial-gradient(circle at center, 
+              rgba(255, 165, 0, 0.15),
+              rgba(255, 77, 77, 0.1),
+              transparent 70%
+            );
+          }
+
           .grid-pattern {
             background-image: 
               linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
@@ -58,6 +90,13 @@ const LandingPage = ({ onLogin }) => {
           }
         `}
       </style>
+
+      {/* Glow Spots Grid */}
+      <div className="glow-spots">
+        {Array.from({ length: 48 }).map((_, index) => (
+          <div key={index} className="glow-spot" />
+        ))}
+      </div>
 
       {/* Grid Pattern */}
       <div className="grid-pattern" />
@@ -139,7 +178,7 @@ const LandingPage = ({ onLogin }) => {
       <button
         onClick={onLogin}
         style={{
-          background: '#0076BE',
+          background: '#004080',
           color: 'white',
           border: 'none',
           padding: '16px 48px',
@@ -157,13 +196,13 @@ const LandingPage = ({ onLogin }) => {
         }}
         onMouseOver={(e) => {
           e.currentTarget.style.transform = 'translateY(-2px)';
-          e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 118, 190, 0.3)';
-          e.currentTarget.style.background = '#005D99';
+          e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 64, 128, 0.3)';
+          e.currentTarget.style.background = '#003366';
         }}
         onMouseOut={(e) => {
           e.currentTarget.style.transform = 'translateY(0)';
           e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-          e.currentTarget.style.background = '#0076BE';
+          e.currentTarget.style.background = '#004080';
         }}
       >
         Login to Nessie API
