@@ -17,6 +17,7 @@ import ETFDetail from "./ETFDetail";
 import ETFPieChart from "./ETFPieChart";
 import LandingPage from "./LandingPage";
 import RiskSelection from "./RiskSelection";
+import MapScreen from './components/MapScreen';
 
 const styles = `
   * {
@@ -697,6 +698,8 @@ const mockETFs = [
 const App = () => {
   const [showLandingPage, setShowLandingPage] = useState(true);
   const [showRiskSelection, setShowRiskSelection] = useState(false);
+  const [showMapScreen, setShowMapScreen] = useState(false);
+  const [budget, setBudget] = useState(null);
   const [riskLevel, setRiskLevel] = useState(null);
   const [showInvestPage, setShowInvestPage] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
@@ -715,10 +718,11 @@ const App = () => {
     setShowRiskSelection(true);
   };
 
-  const handleRiskSelection = (level) => {
-    console.log('Risk Level Selected:', level);
-    setRiskLevel(level);
+  const handleRiskSelection = (selectedBudget) => {
+    console.log('Budget Selected:', selectedBudget);
+    setBudget(selectedBudget);
     setShowRiskSelection(false);
+    setShowMapScreen(true);
   };
 
   // Add useEffect to monitor risk level changes
@@ -802,6 +806,10 @@ const App = () => {
 
   if (showRiskSelection) {
     return <RiskSelection onSelectRisk={handleRiskSelection} />;
+  }
+
+  if (showMapScreen) {
+    return <MapScreen budget={budget} />;
   }
 
   const renderDashboard = () => (

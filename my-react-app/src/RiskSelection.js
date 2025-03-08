@@ -437,7 +437,11 @@ const RiskSelection = ({ onSelectRisk }) => {
           min="1000"
           max="10000"
           value={budget}
-          onChange={(e) => setBudget(parseInt(e.target.value))}
+          onChange={(e) => {
+            const newBudget = parseInt(e.target.value);
+            console.log('Budget updated:', newBudget);
+            setBudget(newBudget);
+          }}
           style={{
             background: `linear-gradient(90deg, ${getBudgetColor(budget)} ${((budget-1000)/9000)*100}%, rgba(255, 255, 255, 0.1) ${((budget-1000)/9000)*100}%)`
           }}

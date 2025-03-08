@@ -132,7 +132,7 @@ const LandingPage = ({ onLogin }) => {
           letterSpacing: '-1px',
           lineHeight: '1.4'
         }}>
-          Invest in supply chains. Help grow small businesses.
+          Invest in supply chains. Support local businesses.
         </h2>
       </div>
       
