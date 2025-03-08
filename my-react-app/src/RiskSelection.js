@@ -5,12 +5,48 @@ const RiskSelection = ({ onSelectRisk }) => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [particles, setParticles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [budget, setBudget] = useState(1000);
+  const [budget, setBudget] = useState(500);
 
   const getBudgetColor = (amount) => {
-    if (amount < 3000) return '#fbbf24'; // Warm yellow
-    if (amount < 7000) return '#15803d'; // Medium green
-    return '#064e3b'; // Dark green
+    // Define thresholds for different phases
+    const phases = [
+      { threshold: 2000, color: '#fbbf24' },  // Warm yellow
+      { threshold: 4000, color: '#facc15' },  // Lighter yellow-green
+      { threshold: 6000, color: '#84cc16' },  // Light green
+      { threshold: 8000, color: '#22c55e' },  // Medium green
+      { threshold: 10000, color: '#16a34a' }  // Bright green
+    ];
+
+    // Find the appropriate color based on amount
+    for (let i = 0; i < phases.length; i++) {
+      if (amount <= phases[i].threshold) {
+        if (i === 0) return phases[i].color;
+        
+        // Calculate percentage between this threshold and previous
+        const range = phases[i].threshold - phases[i-1].threshold;
+        const progress = (amount - phases[i-1].threshold) / range;
+        
+        // Interpolate between colors
+        const color1 = phases[i-1].color;
+        const color2 = phases[i].color;
+        
+        // Convert hex to RGB and interpolate
+        const r1 = parseInt(color1.slice(1,3), 16);
+        const g1 = parseInt(color1.slice(3,5), 16);
+        const b1 = parseInt(color1.slice(5,7), 16);
+        
+        const r2 = parseInt(color2.slice(1,3), 16);
+        const g2 = parseInt(color2.slice(3,5), 16);
+        const b2 = parseInt(color2.slice(5,7), 16);
+        
+        const r = Math.round(r1 + (r2-r1) * progress);
+        const g = Math.round(g1 + (g2-g1) * progress);
+        const b = Math.round(b1 + (b2-b1) * progress);
+        
+        return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+      }
+    }
+    return phases[phases.length-1].color;
   };
 
   const formatBudget = (amount) => {
@@ -165,45 +201,66 @@ const RiskSelection = ({ onSelectRisk }) => {
             padding: 32px;
             border: none;
             border-radius: 12px;
-            font-size: 28px;
-            font-weight: 600;
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'Inter', 'Poppins', sans-serif;
             color: white;
             cursor: pointer;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 8px;
+            letter-spacing: -0.5px;
+            background-size: 200% auto;
           }
 
-          .risk-button span {
-            font-size: 18px;
-            opacity: 0.9;
+          .risk-button::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 16px;
+            padding: 4px;
+            background: conic-gradient(
+              from 0deg at 50% 50%,
+              transparent 0%,
+              transparent 25%,
+              white 25%,
+              white 50%,
+              transparent 50%,
+              transparent 100%
+            );
+            -webkit-mask: 
+              linear-gradient(#fff 0 0) content-box, 
+              linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s;
           }
 
           .risk-button:hover {
             transform: translateY(-2px);
           }
 
-          .risk-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-              90deg,
-              transparent,
-              rgba(255, 255, 255, 0.2),
-              transparent
-            );
-            transition: 0.5s;
+          .risk-button:hover::before {
+            opacity: 1;
+            animation: spin 2s linear infinite;
           }
 
-          .risk-button:hover::before {
-            left: 100%;
+          @keyframes spin {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+
+          .risk-button span {
+            font-size: 18px;
+            opacity: 0.9;
           }
 
           .splash-screen {
@@ -396,15 +453,16 @@ const RiskSelection = ({ onSelectRisk }) => {
 
       <div style={{
         textAlign: 'center',
-        marginBottom: '60px',
+        marginBottom: '0px',
         position: 'relative',
         zIndex: 2,
-        maxWidth: '1200px'
+        maxWidth: '1200px',
+        marginTop: '0px'
       }}>
         <h1 style={{
           fontSize: '72px',
           fontWeight: '800',
-          marginBottom: '32px',
+          marginBottom: '20px',
           background: 'linear-gradient(90deg, #ff4d4d 20%, #f9cb28 50%, #ff4d4d 80%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
@@ -417,24 +475,31 @@ const RiskSelection = ({ onSelectRisk }) => {
         </h1>
         <h2 style={{
           fontSize: '32px',
-          color: '#666666',
+          color: '#ffffff',
           fontWeight: '400',
           margin: '0 auto',
           letterSpacing: '-1px',
-          lineHeight: '1.4'
+          lineHeight: '1.4',
+          marginBottom: '40px'
         }}>
           Select your budget for investing
         </h2>
       </div>
 
-      <div className="budget-slider" style={{ position: 'relative', zIndex: 2 }}>
+      <div className="budget-slider" style={{ 
+        position: 'relative', 
+        zIndex: 2,
+        marginTop: '0px'
+      }}>
         <div className="budget-display" style={{ color: getBudgetColor(budget) }}>
           {formatBudget(budget)}
         </div>
-        <div className="budget-label">Drag the slider to set your investment budget</div>
+        <div className="budget-label" style={{ color: '#ffffff' }}>
+          Drag the slider to set your investment budget
+        </div>
         <input
           type="range"
-          min="1000"
+          min="500"
           max="10000"
           value={budget}
           onChange={(e) => {
@@ -443,7 +508,7 @@ const RiskSelection = ({ onSelectRisk }) => {
             setBudget(newBudget);
           }}
           style={{
-            background: `linear-gradient(90deg, ${getBudgetColor(budget)} ${((budget-1000)/9000)*100}%, rgba(255, 255, 255, 0.1) ${((budget-1000)/9000)*100}%)`
+            background: `linear-gradient(90deg, ${getBudgetColor(budget)} ${((budget-500)/9500)*100}%, rgba(255, 255, 255, 0.1) ${((budget-500)/9500)*100}%)`
           }}
         />
       </div>
@@ -467,7 +532,11 @@ const RiskSelection = ({ onSelectRisk }) => {
           padding: '20px 40px',
           position: 'relative',
           zIndex: 10,
-          cursor: 'pointer'
+          cursor: 'pointer',
+          fontFamily: "'Inter', 'Poppins', sans-serif",
+          letterSpacing: '-0.5px',
+          fontWeight: 700,
+          isolation: 'isolate'
         }}
       >
         Continue with {formatBudget(budget)}

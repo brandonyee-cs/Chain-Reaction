@@ -11,7 +11,7 @@ const SplashScreen = () => {
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, #1a1a1a, #0A0A0A 60%, #080808);
+            background: #000000;
             display: flex;
             justify-content: center;
             align-items: center;

@@ -126,7 +126,7 @@ const LandingPage = ({ onLogin }) => {
         </h1>
         <h2 style={{
           fontSize: '32px',
-          color: '#666666',
+          color: '#FFFFFF',
           fontWeight: '400',
           margin: '0 auto',
           letterSpacing: '-1px',

@@ -495,7 +495,10 @@ const MapScreen = ({ budget }) => {
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
-        backgroundColor: 'white'
+        backgroundColor: '#000000',
+        color: '#ffffff',
+        fontSize: '18px',
+        fontWeight: '500'
       }}>
         Loading map data...
       </div>
@@ -593,7 +596,7 @@ const MapScreen = ({ budget }) => {
         </style>
         <MapContainer 
           center={center} 
-          zoom={15} 
+          zoom={15}
           style={{ height: "100%", width: "100%" }}
           scrollWheelZoom={true}
           zoomControl={true}
@@ -662,7 +665,7 @@ const MapScreen = ({ budget }) => {
             </Marker>
           ))}
         </MapContainer>
-      </div>
+              </div>
     </div>
   );
 };
