@@ -4,17 +4,19 @@
   npm i
   npm start
   */
-import React, { useState, useRef, useEffect } from "react";
-import ETFPieChart from "./ETFPieChart";
-import ETFDetail from "./ETFDetail";
 import {
-  MapPin,
-  TrendingUp,
-  DollarSign,
-  Package,
-  Info,
   BarChart2,
+  DollarSign,
+  Info,
+  MapPin,
+  Package,
+  TrendingUp,
 } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import ETFDetail from "./ETFDetail";
+import ETFPieChart from "./ETFPieChart";
+import LandingPage from "./LandingPage";
+import RiskSelection from "./RiskSelection";
 
 const styles = `
   * {
@@ -563,6 +565,29 @@ const styles = `
     color: #6b7280;
     font-size: 0.875rem;
   }
+
+  .logout-btn {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    margin-left: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .logout-btn:hover {
+    background-color: #dc2626;
+  }
+  
+  .header-buttons {
+    display: flex;
+    align-items: center;
+  }
 `;
 
 // Mock data for our application
@@ -670,10 +695,13 @@ const mockETFs = [
 
 
 const App = () => {
+  const [showLandingPage, setShowLandingPage] = useState(true);
+  const [showRiskSelection, setShowRiskSelection] = useState(false);
+  const [riskLevel, setRiskLevel] = useState(null);
   const [showInvestPage, setShowInvestPage] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [selectedETF, setSelectedETF] = useState(null);
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [currentTab, setCurrentTab] = useState("dashboard");
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const [selectedBusiness, setSelectedBusiness] = useState(null);
 
@@ -681,6 +709,28 @@ const App = () => {
   const exploreRef = useRef(null);
   const portfolioRef = useRef(null);
   const learnRef = useRef(null);
+
+  const handleLogin = () => {
+    setShowLandingPage(false);
+    setShowRiskSelection(true);
+  };
+
+  const handleRiskSelection = (level) => {
+    console.log('Risk Level Selected:', level);
+    setRiskLevel(level);
+    setShowRiskSelection(false);
+  };
+
+  // Add useEffect to monitor risk level changes
+  useEffect(() => {
+    console.log('Current Risk Level State:', riskLevel);
+  }, [riskLevel]);
+
+  const handleLogout = () => {
+    setShowLandingPage(true);
+    setShowRiskSelection(false);
+    setRiskLevel(null);
+  };
 
   const handleOpenInvestPage = (supplier = null) => {
     setSelectedSupplier(supplier);
@@ -691,7 +741,7 @@ const App = () => {
   useEffect(() => {
     let activeTabRef;
 
-    switch (activeTab) {
+    switch (currentTab) {
       case "dashboard":
         activeTabRef = dashboardRef;
         break;
@@ -714,7 +764,7 @@ const App = () => {
         width: `${offsetWidth}px`,
       });
     }
-  }, [activeTab]); // Only activeTab as dependency
+  }, [currentTab]); // Only currentTab as dependency
 
   // Calculate total investment and impact
   const totalInvested = mockInvestments.reduce(
@@ -743,8 +793,16 @@ const App = () => {
 
   const handleBusinessClick = (business) => {
     setSelectedBusiness(business);
-    setActiveTab("businessDetail");
+    setCurrentTab("businessDetail");
   };
+
+  if (showLandingPage) {
+    return <LandingPage onLogin={handleLogin} />;
+  }
+
+  if (showRiskSelection) {
+    return <RiskSelection onSelectRisk={handleRiskSelection} />;
+  }
 
   const renderDashboard = () => (
     <div>
@@ -966,7 +1024,7 @@ const App = () => {
 
     return (
       <div>
-        <button onClick={() => setActiveTab("dashboard")} className="back-link">
+        <button onClick={() => setCurrentTab("dashboard")} className="back-link">
           ← Back to Dashboard
         </button>
 
@@ -1292,20 +1350,27 @@ const App = () => {
       <header>
         <div className="header-content">
           <h1 className="logo">Supply Chain Invest App</h1>
-          <button
-            className="new-investment-btn"
-            onClick={() => handleOpenInvestPage()}
-          >
-            {" "}
-            + New Investment
-          </button>
+          <div className="header-buttons">
+            <button
+              className="new-investment-btn"
+              onClick={() => handleOpenInvestPage()}
+            >
+              + New Investment
+            </button>
+            <button
+              className="logout-btn"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
       <main>
         {showInvestPage ? (
           renderInvestmentPage()
-        ) : activeTab === "businessDetail" ? (
+        ) : currentTab === "businessDetail" ? (
           renderBusinessDetail()
         ) : (
           <>
@@ -1315,42 +1380,42 @@ const App = () => {
 
               <button
                 ref={dashboardRef}
-                onClick={() => setActiveTab("dashboard")}
-                className={`nav-tab ${activeTab === "dashboard" ? "active" : ""}`}
+                onClick={() => setCurrentTab("dashboard")}
+                className={`nav-tab ${currentTab === "dashboard" ? "active" : ""}`}
               >
                 <BarChart2 size={18} />
                 <span>Dashboard</span>
               </button>
               <button
                 ref={exploreRef}
-                onClick={() => setActiveTab("explore")}
-                className={`nav-tab ${activeTab === "explore" ? "active" : ""}`}
+                onClick={() => setCurrentTab("explore")}
+                className={`nav-tab ${currentTab === "explore" ? "active" : ""}`}
               >
                 <MapPin size={18} />
                 <span>Explore</span>
               </button>
               <button
                 ref={portfolioRef}
-                onClick={() => setActiveTab("portfolio")}
-                className={`nav-tab ${activeTab === "portfolio" ? "active" : ""}`}
+                onClick={() => setCurrentTab("portfolio")}
+                className={`nav-tab ${currentTab === "portfolio" ? "active" : ""}`}
               >
                 <DollarSign size={18} />
                 <span>Portfolio</span>
               </button>
               <button
                 ref={learnRef}
-                onClick={() => setActiveTab("learn")}
-                className={`nav-tab ${activeTab === "learn" ? "active" : ""}`}
+                onClick={() => setCurrentTab("learn")}
+                className={`nav-tab ${currentTab === "learn" ? "active" : ""}`}
               >
                 <Info size={18} />
                 <span>Learn</span>
               </button>
             </nav>
 
-            {activeTab === "dashboard" && renderDashboard()}
-            {activeTab === "portfolio" && renderPortfolio()}
-            {activeTab === "explore" && renderExplore()}
-            {activeTab === "learn" && (
+            {currentTab === "dashboard" && renderDashboard()}
+            {currentTab === "portfolio" && renderPortfolio()}
+            {currentTab === "explore" && renderExplore()}
+            {currentTab === "learn" && (
               <div className="card">
                 <h2 className="card-title">How It Works</h2>
                 <p style={{ color: "#4b5563", marginBottom: "1rem" }}>
