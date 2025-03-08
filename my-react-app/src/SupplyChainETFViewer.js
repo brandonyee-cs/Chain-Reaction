@@ -2,7 +2,7 @@
 
 // 1. Create a new file: SupplyChainETFViewer.js
 import React, { useState } from "react";
-import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
+import { Cell, Legend, Pie, PieChart, Tooltip } from "recharts";
 
 // Mock data for supply chain visualization
 const mockETFSupplyChain = {

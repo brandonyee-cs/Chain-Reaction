@@ -2,7 +2,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import React, { useEffect, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
-import businessData from '../data/business_info.json';
+import businessData from '../data/small_business_data.json';
 
 // Business Details Component
 const BusinessDetailsView = ({ business, onBack }) => {
@@ -432,32 +432,52 @@ const MapScreen = ({ budget }) => {
   const [loading, setLoading] = useState(true);
   const [showBusinessDetails, setShowBusinessDetails] = useState(false);
 
-  // Queens College coordinates
-  const center = [40.7362, -73.8198];
+  // Center coordinates for Kew Gardens Hills area
+  const center = [40.7328, -73.8219];
 
-  // Function to convert address to coordinates (simplified for demo)
-  const getCoordinates = (address) => {
-    // This is a simplified version - in reality, you would use geocoding
-    // For now, generating coordinates around Queens College
-    const baseLatitude = 40.7362;
-    const baseLongitude = -73.8198;
-    const offset = 0.005; // Roughly 500 meters
+  // Define coordinates for known business locations
+  const businessCoordinates = {
+    // Union St locations
+    'ZFSTG': [40.7352, -73.8208], // 157 Union St
+    'MST': [40.7358, -73.8208],   // 182 Union St
+    'FARS': [40.7355, -73.8208],  // 177 Union St
     
-    return [
-      baseLatitude + (Math.random() - 0.5) * offset,
-      baseLongitude + (Math.random() - 0.5) * offset
-    ];
+    // Main St locations
+    'ANDA': [40.7336, -73.8147],  // 103 Main St
+    
+    // Parsons Blvd locations
+    'AS': [40.7332, -73.8178],    // 80 Parsons Blvd
+    
+    // 150th St locations
+    'TSB': [40.7329, -73.8219],   // 57 150th St
+    
+    // Melbourne Ave locations
+    'OTNPP': [40.7329, -73.8239], // 59 Melbourne Ave
+    
+    // Horace Harding Expy locations
+    'ARONS': [40.7352, -73.8208]  // 81 Horace Harding Expy
   };
 
   useEffect(() => {
     const fetchBusinesses = async () => {
       try {
-        const businessesWithCoordinates = businessData.businesses.map(business => ({
-          ...business,
-          coordinates: getCoordinates(business.address),
-          investment_needed: Math.round(business.annual_revenue * 0.1)
-        }));
-        setBusinesses(businessesWithCoordinates);
+        // Convert the object of businesses into an array
+        const businessArray = Object.entries(businessData).map(([id, business]) => {
+          // Get coordinates for the business or use random coordinates as fallback
+          const coordinates = businessCoordinates[id] || [
+            center[0] + (Math.random() - 0.5) * 0.005,
+            center[1] + (Math.random() - 0.5) * 0.005
+          ];
+          
+          return {
+            ...business,
+            business_id: id,
+            coordinates,
+            investment_needed: Math.round(business.annual_revenue * 0.1)
+          };
+        });
+        
+        setBusinesses(businessArray);
         setLoading(false);
       } catch (error) {
         console.error('Error processing business data:', error);
@@ -485,7 +505,7 @@ const MapScreen = ({ budget }) => {
   return (
     <div style={{
       padding: "20px",
-      backgroundColor: "white",
+      backgroundColor: "#000000",
       minHeight: "100vh",
       position: "relative"
     }}>
@@ -500,60 +520,83 @@ const MapScreen = ({ budget }) => {
       )}
 
       <h1 style={{ 
-        marginBottom: "20px", 
-        color: "#1a1a1a",
-        fontSize: "28px",
-        fontWeight: "600" 
+        marginBottom: "8px",
+        textAlign: "center",
+        fontSize: "42px",
+        fontWeight: "800",
+        fontFamily: "'Inter', 'Poppins', sans-serif",
+        color: "#ffffff",
+        textTransform: "none",
+        letterSpacing: "-0.5px",
+        marginTop: "20px",
+        padding: "0 20px",
+        lineHeight: "1.2",
+        textShadow: "0 2px 4px rgba(0,0,0,0.1)"
       }}>
         Local Business Investment Opportunities
-        <span style={{ 
-          fontSize: "18px", 
-          color: "#666", 
-          marginLeft: "15px", 
-          fontWeight: "normal" 
-        }}>
-          Your Budget: ${budget.toLocaleString()}
-        </span>
       </h1>
+      <div style={{ 
+        fontSize: "20px", 
+        fontWeight: "600",
+        textAlign: "center",
+        marginBottom: "20px",
+        background: "linear-gradient(135deg, #ef4444, #f59e0b)",
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+        backgroundClip: "text",
+        display: "inline-block",
+        width: "100%"
+      }}>
+        Available Investment Budget: ${budget.toLocaleString()}
+      </div>
 
       {/* Legend */}
-      <div style={{
-        position: 'absolute',
-        top: '100px',
-        right: '20px',
-        backgroundColor: 'white',
-        padding: '10px',
-        borderRadius: '8px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        zIndex: 1000
-      }}>
-        <h3 style={{ marginBottom: '8px', fontSize: '14px' }}>Annual Revenue</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <div style={{ width: '12px', height: '12px', backgroundColor: '#90EE90', borderRadius: '50%' }}></div>
-            <span style={{ fontSize: '12px' }}>Under $500K</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <div style={{ width: '12px', height: '12px', backgroundColor: '#32CD32', borderRadius: '50%' }}></div>
-            <span style={{ fontSize: '12px' }}>$500K - $1M</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <div style={{ width: '12px', height: '12px', backgroundColor: '#228B22', borderRadius: '50%' }}></div>
-            <span style={{ fontSize: '12px' }}>$1M - $1.5M</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <div style={{ width: '12px', height: '12px', backgroundColor: '#006400', borderRadius: '50%' }}></div>
-            <span style={{ fontSize: '12px' }}>Over $1.5M</span>
+      {!showBusinessDetails && (
+        <div style={{
+          position: 'absolute',
+          top: '100px',
+          right: '20px',
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          padding: '15px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+          zIndex: 1000,
+          border: '1px solid #333'
+        }}>
+          <h3 style={{ marginBottom: '10px', fontSize: '14px', color: '#ffffff' }}>Annual Revenue</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '12px', height: '12px', backgroundColor: '#90EE90', borderRadius: '50%' }}></div>
+              <span style={{ fontSize: '12px', color: '#ffffff' }}>Under $500K</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '12px', height: '12px', backgroundColor: '#32CD32', borderRadius: '50%' }}></div>
+              <span style={{ fontSize: '12px', color: '#ffffff' }}>$500K - $1M</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '12px', height: '12px', backgroundColor: '#228B22', borderRadius: '50%' }}></div>
+              <span style={{ fontSize: '12px', color: '#ffffff' }}>$1M - $1.5M</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '12px', height: '12px', backgroundColor: '#006400', borderRadius: '50%' }}></div>
+              <span style={{ fontSize: '12px', color: '#ffffff' }}>Over $1.5M</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
       
       <div style={{ height: "85vh", width: "100%" }}>
+        <style>
+          {`
+            ${showBusinessDetails ? '.leaflet-control-zoom { display: none !important; }' : ''}
+          `}
+        </style>
         <MapContainer 
           center={center} 
           zoom={15} 
           style={{ height: "100%", width: "100%" }}
           scrollWheelZoom={true}
+          zoomControl={true}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -577,11 +620,16 @@ const MapScreen = ({ budget }) => {
                   textAlign: "center"
                 }}>
                   <h3 style={{ 
-                    marginBottom: "12px", 
+                    marginBottom: "8px", 
                     color: "#000000",
                     fontSize: "16px",
                     fontWeight: "600"
                   }}>{business.name}</h3>
+                  <p style={{
+                    color: "#666666",
+                    fontSize: "14px",
+                    marginBottom: "12px"
+                  }}>{business.address}</p>
                   <button
                     style={{
                       padding: "8px 16px",
