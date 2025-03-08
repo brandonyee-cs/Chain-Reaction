@@ -23,12 +23,12 @@ class Gemini:
     and generate relevant supply chain information and stock tickers.
     """
     
-    def __init__(self, model_name: str = 'gemini-pro') -> None:
+    def __init__(self, model_name: str = 'gemini-2.0-flash-lite-preview') -> None:
         """
         Initialize the Gemini interface with Google's generative AI.
 
         Args:
-            model_name: Name of the generative model to use (default: 'gemini-pro')
+            model_name: Name of the generative model to use (default: 'gemini-2.0-flash-lite-preview')
         """
         # Load environment variables
         load_dotenv()
@@ -41,9 +41,39 @@ class Gemini:
             # Configure the API with the key
             genai.configure(api_key=self.api_key)
             
-            # Initialize the model
-            self.model = genai.GenerativeModel(model_name)
-            logger.info(f"Successfully initialized {model_name} model")
+            # Initialize the model with optimized settings for Gemini 2.0 Lite
+            generation_config = {
+                'temperature': 0.7,  # Balanced between creativity and precision
+                'top_p': 0.9,       # More focused response distribution
+                'top_k': 40,        # Diverse but controlled token selection
+                'max_output_tokens': 2048  # Reasonable output length for analysis
+            }
+            
+            safety_settings = [
+                {
+                    "category": "HARM_CATEGORY_HARASSMENT",
+                    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    "category": "HARM_CATEGORY_HATE_SPEECH",
+                    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+                }
+            ]
+            
+            self.model = genai.GenerativeModel(
+                model_name=model_name,
+                generation_config=generation_config,
+                safety_settings=safety_settings
+            )
+            logger.info(f"Successfully initialized {model_name} model with optimized settings")
         except Exception as e:
             logger.error(f"Error initializing Gemini model: {str(e)}")
             raise
@@ -76,32 +106,19 @@ class Gemini:
             # Get small business data
             business_data = self.data_loader.get_small_business_data(sbID)
             
-            # Construct a more detailed prompt with improved instructions
+            # Construct a more focused prompt optimized for Gemini 2.0 Lite
             self.prompt = f"""
-            Act as an expert supply chain analyst and business intelligence system.
+            As a supply chain analyst, create a concise supply chain analysis for this business.
 
-            Your task is to analyze the following small business data and construct a comprehensive 
-            supply chain from raw materials to end consumer for the business.
+            Key Information:
+            - Season: {season} (impacts seasonal demand)
+            - Business Data: {business_data}
+            - Website Info: {website_data}
+            - Economic Context: {economic_data}
 
-            Consider the following in your analysis:
-            1. The current season is {season}, which may affect seasonal products and demand
-            2. The business type and its specific requirements
-            3. The local economic conditions
-            4. The business's existing suppliers and inventory
-            5. Any information gleaned from the business's website
-
-            BUSINESS INFORMATION:
-            {business_data}
-
-            WEBSITE DATA:
-            {website_data}
-
-            LOCAL ECONOMIC DATA:
-            {economic_data}
-
-            Please provide your response as a comma-separated list of industries that form 
-            the supply chain from raw materials to end consumer.
-            Format: industry1, industry2, industry3, ...
+            Required: List the supply chain stages from raw materials to end consumer.
+            Format: stage1, stage2, stage3, ...
+            Keep responses focused and precise.
             """
             
             logger.info(f"Successfully generated prompt for business ID: {sbID}")
@@ -125,14 +142,17 @@ class Gemini:
             # Get the prompt for the business
             self.get_prompt(sbID)
             
-            # Generate content using the model
-            response = self.model.generate_content(self.prompt)
+            # Generate content using the model with stream=False for Gemini 2.0 Lite
+            response = self.model.generate_content(
+                self.prompt,
+                stream=False
+            )
             
             # Extract and store the text response
             if hasattr(response, 'text'):
-                self.supply_chain = response.text
+                self.supply_chain = response.text.strip()
             else:
-                self.supply_chain = str(response)
+                self.supply_chain = str(response).strip()
                 
             logger.info(f"Successfully generated supply chain for business ID: {sbID}")
             return self.supply_chain
@@ -153,35 +173,36 @@ class Gemini:
             Dictionary mapping industries to lists of related stock tickers
         """
         try:
-            # Construct a prompt to get stock tickers for the industries
+            # Construct a focused prompt for Gemini 2.0 Lite
             prompt = f"""
-            Act as a financial analyst specializing in industry-specific stock screening.
-            
-            For each of the following industries in a supply chain, provide a list of 3-5 publicly 
-            traded companies (with their stock tickers) that are major players in that industry.
-            
-            Supply chain industries: {supply_chain}
-            
-            Format your response as:
-            Industry1: TICKER1, TICKER2, TICKER3
-            Industry2: TICKER1, TICKER2, TICKER3, TICKER4
-            ...
-            
-            Only include actual stock tickers for real companies that trade on major exchanges.
+            List 3 major publicly traded companies (stock tickers) for each industry:
+            Industries: {supply_chain}
+
+            Format:
+            Industry1: TICK1, TICK2, TICK3
+            Industry2: TICK1, TICK2, TICK3
+
+            Rules:
+            - Only include real companies on major exchanges
+            - Use official ticker symbols
+            - Focus on market leaders
             """
             
-            # Generate content
-            response = self.model.generate_content(prompt)
+            # Generate content with stream=False for Gemini 2.0 Lite
+            response = self.model.generate_content(
+                prompt,
+                stream=False
+            )
             
             # Extract response text
             if hasattr(response, 'text'):
-                response_text = response.text
+                response_text = response.text.strip()
             else:
-                response_text = str(response)
+                response_text = str(response).strip()
             
             # Parse the response into a dictionary
             ticker_dict = {}
-            for line in response_text.strip().split('\n'):
+            for line in response_text.split('\n'):
                 if ':' in line:
                     industry, tickers = line.split(':', 1)
                     ticker_list = [t.strip() for t in tickers.split(',')]
@@ -210,75 +231,15 @@ class Gemini:
         industries = [industry.strip() for industry in self.supply_chain.split(',')]
         logger.info(f"Processed supply chain into {len(industries)} industries")
         return industries
-    
-    def analyze_business_competitive_landscape(self, sbID: str) -> Dict[str, Any]:
-        """
-        Analyze the competitive landscape for a business.
-        
-        Args:
-            sbID: Small business ID to analyze
-            
-        Returns:
-            Dictionary with competitive analysis data
-        """
-        try:
-            # Get business data
-            business_data = self.data_loader.get_small_business_data(sbID)
-            
-            # Extract competitors if available
-            competitors = business_data.get('competitors', [])
-            
-            # Analyze competitors and provide insights
-            if competitors:
-                prompt = f"""
-                Act as a competitive intelligence analyst.
-                
-                Analyze the following competitors of {business_data.get('name')} 
-                (a {business_data.get('business_type')} business) and provide 
-                strategic recommendations:
-                
-                {competitors}
-                
-                Provide a concise SWOT analysis (Strengths, Weaknesses, Opportunities, Threats)
-                based on this competitive landscape.
-                """
-                
-                # Generate content
-                response = self.model.generate_content(prompt)
-                
-                # Extract response text
-                if hasattr(response, 'text'):
-                    analysis = response.text
-                else:
-                    analysis = str(response)
-                
-                return {
-                    "business_name": business_data.get('name'),
-                    "business_type": business_data.get('business_type'),
-                    "competitors": competitors,
-                    "competitive_analysis": analysis
-                }
-            else:
-                return {
-                    "business_name": business_data.get('name'),
-                    "business_type": business_data.get('business_type'),
-                    "competitors": [],
-                    "competitive_analysis": "No competitor data available for analysis."
-                }
-                
-        except Exception as e:
-            error_msg = f"Error analyzing competitive landscape for business ID {sbID}: {str(e)}"
-            logger.error(error_msg)
-            return {"error": error_msg}
 
 def main():
     """
     Main function to demonstrate Gemini functionality
     """
     try:
-        # Initialize Gemini with default model
+        # Initialize Gemini with Gemini 2.0 Lite model
         gemini = Gemini()
-        print("Initialized Gemini successfully")
+        print("Initialized Gemini 2.0 Lite successfully")
 
         # Example small business ID (using one from the DataLoader urls)
         sbID = "FWR"  # The Flower Wall Rental Co.
@@ -298,12 +259,6 @@ def main():
         print("Related Tickers by Industry:")
         for industry, tickers in ticker_dict.items():
             print(f"  {industry}: {', '.join(tickers)}")
-            
-        # Analyze competitive landscape
-        print("\nAnalyzing competitive landscape...")
-        comp_analysis = gemini.analyze_business_competitive_landscape(sbID)
-        print(f"Competitive Analysis for {comp_analysis.get('business_name')}:")
-        print(comp_analysis.get('competitive_analysis'))
 
     except Exception as e:
         print(f"Error in main: {str(e)}")
