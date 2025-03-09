@@ -2,7 +2,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import React, { useEffect, useState } from "react";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
-import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
+import { Cell, Legend, Pie, PieChart, Tooltip } from "recharts";
 import businessData from "../data/small_business_data.json";
 
 // Business Details Component
@@ -25,7 +25,7 @@ const BusinessDetailsView = ({ business, onBack }) => {
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
-        backgroundColor: "white",
+        backgroundColor: "black",
         padding: "2rem",
         borderRadius: "8px",
         boxShadow:
@@ -141,7 +141,7 @@ const BusinessDetailsView = ({ business, onBack }) => {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "white",
+        backgroundColor: "black",
         zIndex: 1000,
         padding: "20px",
         overflow: "auto",
@@ -180,25 +180,26 @@ const BusinessDetailsView = ({ business, onBack }) => {
               fontSize: "24px",
               fontWeight: "600",
               marginBottom: "8px",
+              color: "white",
             }}
           >
             {business.name}
           </h2>
-          <p style={{ color: "#666", fontSize: "14px" }}>
+          <p style={{ color: "#9ca3af", fontSize: "14px" }}>
             {business.business_type} · Established {business.established}
           </p>
         </div>
         <div style={{ textAlign: "right" }}>
           <p
             style={{
-              color: "#059669",
+              color: "#34d399",
               fontSize: "18px",
               fontWeight: "600",
             }}
           >
             ${business.annual_revenue.toLocaleString()} Annual Revenue
           </p>
-          <p style={{ color: "#6b7280", fontSize: "14px" }}>
+          <p style={{ color: "#9ca3af", fontSize: "14px" }}>
             {business.employees} Employees
           </p>
         </div>
@@ -209,9 +210,10 @@ const BusinessDetailsView = ({ business, onBack }) => {
           display: "flex",
           gap: "1rem",
           marginBottom: "1rem",
-          background: "#f1f5f9",
+          background: "#1a1a1a",
           padding: "0.5rem",
           borderRadius: "0.5rem",
+          border: "1px solid #374151",
         }}
       >
         <button
@@ -219,8 +221,8 @@ const BusinessDetailsView = ({ business, onBack }) => {
           style={{
             padding: "0.5rem 1rem",
             borderRadius: "0.25rem",
-            background: activeView === "overview" ? "#2563eb" : "white",
-            color: activeView === "overview" ? "white" : "#1f2937",
+            background: activeView === "overview" ? "#2563eb" : "transparent",
+            color: activeView === "overview" ? "white" : "#9ca3af",
             border: "none",
             fontWeight: "500",
             cursor: "pointer",
@@ -233,8 +235,8 @@ const BusinessDetailsView = ({ business, onBack }) => {
           style={{
             padding: "0.5rem 1rem",
             borderRadius: "0.25rem",
-            background: activeView === "supplyChain" ? "#2563eb" : "white",
-            color: activeView === "supplyChain" ? "white" : "#1f2937",
+            background: activeView === "supplyChain" ? "#2563eb" : "transparent",
+            color: activeView === "supplyChain" ? "white" : "#9ca3af",
             border: "none",
             fontWeight: "500",
             cursor: "pointer",
@@ -249,11 +251,12 @@ const BusinessDetailsView = ({ business, onBack }) => {
           <div
             className="card"
             style={{
-              backgroundColor: "white",
+              backgroundColor: "#1a1a1a",
               borderRadius: "8px",
               padding: "20px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
               marginBottom: "20px",
+              border: "1px solid #374151",
             }}
           >
             <h3
@@ -261,30 +264,31 @@ const BusinessDetailsView = ({ business, onBack }) => {
                 fontSize: "18px",
                 fontWeight: "600",
                 marginBottom: "16px",
+                color: "white",
               }}
             >
               Business Details
             </h3>
             <div style={{ display: "grid", gap: "12px" }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#666" }}>Location</span>
-                <span style={{ fontWeight: "500" }}>{business.address}</span>
+                <span style={{ color: "#9ca3af" }}>Location</span>
+                <span style={{ fontWeight: "500", color: "white" }}>{business.address}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#666" }}>Neighborhood</span>
-                <span style={{ fontWeight: "500" }}>
+                <span style={{ color: "#9ca3af" }}>Neighborhood</span>
+                <span style={{ fontWeight: "500", color: "white" }}>
                   {business.neighborhood}
                 </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#666" }}>Square Footage</span>
-                <span style={{ fontWeight: "500" }}>
+                <span style={{ color: "#9ca3af" }}>Square Footage</span>
+                <span style={{ fontWeight: "500", color: "white" }}>
                   {business.sq_footage} sq ft
                 </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#666" }}>Contact</span>
-                <span style={{ fontWeight: "500" }}>{business.phone}</span>
+                <span style={{ color: "#9ca3af" }}>Contact</span>
+                <span style={{ fontWeight: "500", color: "white" }}>{business.phone}</span>
               </div>
             </div>
           </div>
@@ -292,10 +296,11 @@ const BusinessDetailsView = ({ business, onBack }) => {
           <div
             className="card"
             style={{
-              backgroundColor: "white",
+              backgroundColor: "#1a1a1a",
               borderRadius: "8px",
               padding: "20px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              border: "1px solid #374151",
             }}
           >
             <h3
@@ -303,26 +308,27 @@ const BusinessDetailsView = ({ business, onBack }) => {
                 fontSize: "18px",
                 fontWeight: "600",
                 marginBottom: "16px",
+                color: "white",
               }}
             >
               Investment Opportunity
             </h3>
             <div style={{ display: "grid", gap: "12px", marginBottom: "20px" }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#666" }}>Investment Needed</span>
-                <span style={{ fontWeight: "600", color: "#059669" }}>
+                <span style={{ color: "#9ca3af" }}>Investment Needed</span>
+                <span style={{ fontWeight: "600", color: "#34d399" }}>
                   ${Math.round(business.annual_revenue * 0.1).toLocaleString()}
                 </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#666" }}>Expected Return</span>
-                <span style={{ fontWeight: "500", color: "#2563eb" }}>
+                <span style={{ color: "#9ca3af" }}>Expected Return</span>
+                <span style={{ fontWeight: "500", color: "#60a5fa" }}>
                   12-15% Annual
                 </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#666" }}>Investment Term</span>
-                <span style={{ fontWeight: "500" }}>24-36 months</span>
+                <span style={{ color: "#9ca3af" }}>Investment Term</span>
+                <span style={{ fontWeight: "500", color: "white" }}>24-36 months</span>
               </div>
             </div>
             <button
@@ -356,11 +362,12 @@ const BusinessDetailsView = ({ business, onBack }) => {
           <div
             className="card"
             style={{
-              backgroundColor: "white",
+              backgroundColor: "#1a1a1a",
               borderRadius: "8px",
               padding: "20px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
               marginBottom: "20px",
+              border: "1px solid #374151",
             }}
           >
             <h3
@@ -368,6 +375,7 @@ const BusinessDetailsView = ({ business, onBack }) => {
                 fontSize: "18px",
                 fontWeight: "600",
                 marginBottom: "16px",
+                color: "white",
               }}
             >
               Supply Chain Breakdown
@@ -381,17 +389,18 @@ const BusinessDetailsView = ({ business, onBack }) => {
                     justifyContent: "space-between",
                     alignItems: "center",
                     padding: "12px",
-                    backgroundColor: "#f8f9fa",
+                    backgroundColor: "#111827",
                     borderRadius: "6px",
                     marginBottom: "8px",
                     borderLeft: `4px solid ${item.color}`,
+                    border: "1px solid #374151",
                   }}
                 >
                   <div>
-                    <h4 style={{ fontWeight: "600", marginBottom: "4px" }}>
+                    <h4 style={{ fontWeight: "600", marginBottom: "4px", color: "white" }}>
                       {item.name}
                     </h4>
-                    <p style={{ color: "#666", fontSize: "14px" }}>
+                    <p style={{ color: "#9ca3af", fontSize: "14px" }}>
                       {item.value}% of supply chain
                     </p>
                   </div>
@@ -436,10 +445,11 @@ const BusinessDetailsView = ({ business, onBack }) => {
           <div
             className="info-box"
             style={{
-              backgroundColor: "#f0f9ff",
+              backgroundColor: "#111827",
               padding: "20px",
               borderRadius: "8px",
               marginTop: "20px",
+              border: "1px solid #374151",
             }}
           >
             <h3
@@ -447,12 +457,13 @@ const BusinessDetailsView = ({ business, onBack }) => {
                 fontSize: "18px",
                 fontWeight: "600",
                 marginBottom: "12px",
+                color: "white",
               }}
             >
               Supply Chain Impact
             </h3>
             <p
-              style={{ color: "#4b5563", fontSize: "14px", lineHeight: "1.5" }}
+              style={{ color: "#9ca3af", fontSize: "14px", lineHeight: "1.5" }}
             >
               Investing in {business.name}'s supply chain helps strengthen local
               business relationships, improve operational efficiency, and
@@ -573,7 +584,7 @@ const BusinessOverview = ({ business, onBack }) => {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "white",
+        backgroundColor: "black",
         zIndex: 1000,
         padding: "20px",
         overflow: "auto",
@@ -606,10 +617,11 @@ const BusinessOverview = ({ business, onBack }) => {
           justifyContent: "space-between",
           alignItems: "flex-start",
           marginBottom: "1rem",
-          backgroundColor: "white",
+          backgroundColor: "black",
           padding: "1rem",
           borderRadius: "0.5rem",
           boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          border: "1px solid #374151",
         }}
       >
         <div>
@@ -619,13 +631,14 @@ const BusinessOverview = ({ business, onBack }) => {
               fontSize: "24px",
               fontWeight: "600",
               marginBottom: "8px",
+              color: "white",
             }}
           >
             {business.name}
           </h2>
           <p
             className="text-gray-600 text-sm"
-            style={{ color: "#666", fontSize: "14px" }}
+            style={{ color: "#9ca3af", fontSize: "14px" }}
           >
             {business.business_type} · Established {business.established}
           </p>
@@ -634,7 +647,7 @@ const BusinessOverview = ({ business, onBack }) => {
           <p
             className="text-green-600 font-semibold text-lg"
             style={{
-              color: "#059669",
+              color: "#34d399",
               fontSize: "18px",
               fontWeight: "600",
             }}
@@ -643,7 +656,7 @@ const BusinessOverview = ({ business, onBack }) => {
           </p>
           <p
             className="text-gray-500 text-sm"
-            style={{ color: "#6b7280", fontSize: "14px" }}
+            style={{ color: "#9ca3af", fontSize: "14px" }}
           >
             {business.employees} Employees
           </p>
@@ -654,11 +667,12 @@ const BusinessOverview = ({ business, onBack }) => {
       <div
         className="bg-white p-4 rounded-lg shadow mb-4"
         style={{
-          backgroundColor: "white",
+          backgroundColor: "black",
           padding: "1rem",
           borderRadius: "0.5rem",
           boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           marginBottom: "1rem",
+          border: "1px solid #374151",
         }}
       >
         <h3
@@ -667,6 +681,7 @@ const BusinessOverview = ({ business, onBack }) => {
             fontSize: "18px",
             fontWeight: "600",
             marginBottom: "0.75rem",
+            color: "white",
           }}
         >
           Business Overview
@@ -677,10 +692,10 @@ const BusinessOverview = ({ business, onBack }) => {
             className="flex justify-between"
             style={{ display: "flex", justifyContent: "space-between" }}
           >
-            <span className="text-gray-600" style={{ color: "#666" }}>
+            <span className="text-gray-600" style={{ color: "#9ca3af" }}>
               Location
             </span>
-            <span className="font-medium" style={{ fontWeight: "500" }}>
+            <span className="font-medium" style={{ fontWeight: "500", color: "white" }}>
               {business.address}
             </span>
           </div>
@@ -688,10 +703,10 @@ const BusinessOverview = ({ business, onBack }) => {
             className="flex justify-between"
             style={{ display: "flex", justifyContent: "space-between" }}
           >
-            <span className="text-gray-600" style={{ color: "#666" }}>
+            <span className="text-gray-600" style={{ color: "#9ca3af" }}>
               Neighborhood
             </span>
-            <span className="font-medium" style={{ fontWeight: "500" }}>
+            <span className="font-medium" style={{ fontWeight: "500", color: "white" }}>
               {business.neighborhood}
             </span>
           </div>
@@ -699,10 +714,10 @@ const BusinessOverview = ({ business, onBack }) => {
             className="flex justify-between"
             style={{ display: "flex", justifyContent: "space-between" }}
           >
-            <span className="text-gray-600" style={{ color: "#666" }}>
+            <span className="text-gray-600" style={{ color: "#9ca3af" }}>
               Square Footage
             </span>
-            <span className="font-medium" style={{ fontWeight: "500" }}>
+            <span className="font-medium" style={{ fontWeight: "500", color: "white" }}>
               {business.sq_footage} sq ft
             </span>
           </div>
@@ -710,10 +725,10 @@ const BusinessOverview = ({ business, onBack }) => {
             className="flex justify-between"
             style={{ display: "flex", justifyContent: "space-between" }}
           >
-            <span className="text-gray-600" style={{ color: "#666" }}>
+            <span className="text-gray-600" style={{ color: "#9ca3af" }}>
               Contact
             </span>
-            <span className="font-medium" style={{ fontWeight: "500" }}>
+            <span className="font-medium" style={{ fontWeight: "500", color: "white" }}>
               {business.phone}
             </span>
           </div>
@@ -721,10 +736,10 @@ const BusinessOverview = ({ business, onBack }) => {
             className="flex justify-between"
             style={{ display: "flex", justifyContent: "space-between" }}
           >
-            <span className="text-gray-600" style={{ color: "#666" }}>
+            <span className="text-gray-600" style={{ color: "#9ca3af" }}>
               Years in Operation
             </span>
-            <span className="font-medium" style={{ fontWeight: "500" }}>
+            <span className="font-medium" style={{ fontWeight: "500", color: "white" }}>
               {new Date().getFullYear() - business.established}
             </span>
           </div>
@@ -735,11 +750,12 @@ const BusinessOverview = ({ business, onBack }) => {
       <div
         className="bg-white p-4 rounded-lg shadow mb-6"
         style={{
-          backgroundColor: "white",
+          backgroundColor: "black",
           padding: "1rem",
           borderRadius: "0.5rem",
           boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           marginBottom: "1.5rem",
+          border: "1px solid #374151",
         }}
       >
         <h3
@@ -748,6 +764,7 @@ const BusinessOverview = ({ business, onBack }) => {
             fontSize: "18px",
             fontWeight: "600",
             marginBottom: "0.75rem",
+            color: "white",
           }}
         >
           Business Description
@@ -755,7 +772,7 @@ const BusinessOverview = ({ business, onBack }) => {
         <p
           className="text-gray-700 mb-3 leading-relaxed"
           style={{
-            color: "#374151",
+            color: "#9ca3af",
             marginBottom: "0.75rem",
             lineHeight: "1.6",
           }}
@@ -769,7 +786,7 @@ const BusinessOverview = ({ business, onBack }) => {
         <p
           className="text-gray-700 leading-relaxed"
           style={{
-            color: "#374151",
+            color: "#9ca3af",
             lineHeight: "1.6",
           }}
         >
@@ -787,7 +804,7 @@ const BusinessOverview = ({ business, onBack }) => {
         >
           <p
             className="mb-4 text-gray-600"
-            style={{ marginBottom: "1rem", color: "#4b5563" }}
+            style={{ marginBottom: "1rem", color: "#9ca3af" }}
           >
             Generate a supply chain analysis and investment options for this
             business
@@ -855,11 +872,12 @@ const BusinessOverview = ({ business, onBack }) => {
           <div
             className="bg-white p-4 rounded-lg shadow mb-6"
             style={{
-              backgroundColor: "white",
+              backgroundColor: "black",
               padding: "1rem",
               borderRadius: "0.5rem",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
               marginBottom: "1.5rem",
+              border: "1px solid #374151",
             }}
           >
             <h3
@@ -868,6 +886,7 @@ const BusinessOverview = ({ business, onBack }) => {
                 fontSize: "18px",
                 fontWeight: "600",
                 marginBottom: "1rem",
+                color: "white",
               }}
             >
               Supply Chain Analysis
@@ -918,18 +937,19 @@ const BusinessOverview = ({ business, onBack }) => {
                     justifyContent: "space-between",
                     alignItems: "center",
                     padding: "0.75rem",
-                    backgroundColor: "#f9fafb",
+                    backgroundColor: "#111827",
                     borderRadius: "0.375rem",
                     borderLeft: `4px solid ${item.color}`,
+                    border: "1px solid #374151",
                   }}
                 >
                   <div>
-                    <h4 className="font-semibold" style={{ fontWeight: "600" }}>
+                    <h4 className="font-semibold" style={{ fontWeight: "600", color: "white" }}>
                       {item.name}
                     </h4>
                     <p
                       className="text-gray-600 text-sm"
-                      style={{ color: "#4b5563", fontSize: "0.875rem" }}
+                      style={{ color: "#9ca3af", fontSize: "0.875rem" }}
                     >
                       {item.value}% of supply chain
                     </p>
@@ -952,11 +972,12 @@ const BusinessOverview = ({ business, onBack }) => {
           <div
             className="bg-white p-4 rounded-lg shadow mb-6"
             style={{
-              backgroundColor: "white",
+              backgroundColor: "black",
               padding: "1rem",
               borderRadius: "0.5rem",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
               marginBottom: "1.5rem",
+              border: "1px solid #374151",
             }}
           >
             <h3
@@ -965,6 +986,7 @@ const BusinessOverview = ({ business, onBack }) => {
                 fontSize: "18px",
                 fontWeight: "600",
                 marginBottom: "1rem",
+                color: "white",
               }}
             >
               ETF Investment Option
@@ -977,21 +999,22 @@ const BusinessOverview = ({ business, onBack }) => {
                 justifyContent: "space-between",
                 alignItems: "flex-start",
                 marginBottom: "1rem",
-                backgroundColor: "#f9fafb",
+                backgroundColor: "#111827",
                 padding: "1rem",
                 borderRadius: "0.375rem",
+                border: "1px solid #374151",
               }}
             >
               <div>
                 <h4
                   className="font-semibold mb-1"
-                  style={{ fontWeight: "600", marginBottom: "0.25rem" }}
+                  style={{ fontWeight: "600", marginBottom: "0.25rem", color: "white" }}
                 >
                   {etfData.name} ({etfData.ticker})
                 </h4>
                 <p
                   className="text-gray-600 text-sm"
-                  style={{ color: "#4b5563", fontSize: "0.875rem" }}
+                  style={{ color: "#9ca3af", fontSize: "0.875rem" }}
                 >
                   Risk Level:
                   <span
@@ -1022,13 +1045,13 @@ const BusinessOverview = ({ business, onBack }) => {
               <div className="text-right" style={{ textAlign: "right" }}>
                 <p
                   className="text-green-600 font-semibold"
-                  style={{ color: "#059669", fontWeight: "600" }}
+                  style={{ color: "#34d399", fontWeight: "600" }}
                 >
                   {etfData.returnRate}% Return Rate
                 </p>
                 <p
                   className="text-gray-600 text-sm"
-                  style={{ color: "#4b5563", fontSize: "0.875rem" }}
+                  style={{ color: "#9ca3af", fontSize: "0.875rem" }}
                 >
                   Value: ${etfData.value}
                 </p>
@@ -1037,7 +1060,7 @@ const BusinessOverview = ({ business, onBack }) => {
 
             <p
               className="text-gray-700 mb-4"
-              style={{ color: "#374151", marginBottom: "1rem" }}
+              style={{ color: "#9ca3af", marginBottom: "1rem" }}
             >
               This ETF includes {business.name} along with other local
               businesses in a diversified portfolio designed to support
@@ -1051,6 +1074,7 @@ const BusinessOverview = ({ business, onBack }) => {
                   fontSize: "1rem",
                   fontWeight: "600",
                   marginBottom: "0.5rem",
+                  color: "white",
                 }}
               >
                 ETF Holdings
@@ -1074,7 +1098,7 @@ const BusinessOverview = ({ business, onBack }) => {
                       borderBottom:
                         index === etfData.holdings.length - 1
                           ? "none"
-                          : "1px solid #e5e7eb",
+                          : "1px solid #374151",
                     }}
                   >
                     <span
@@ -1084,13 +1108,13 @@ const BusinessOverview = ({ business, onBack }) => {
                         color:
                           holding.name === business.name
                             ? "#2563eb"
-                            : "inherit",
+                            : "white",
                       }}
                     >
                       {holding.name}
                       {holding.name === business.name && " (Current Business)"}
                     </span>
-                    <span>{holding.percentage}%</span>
+                    <span style={{ color: "white" }}>{holding.percentage}%</span>
                   </div>
                 ))}
               </div>
@@ -1108,7 +1132,7 @@ const BusinessOverview = ({ business, onBack }) => {
                 className="py-4 px-8 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-lg transition transform hover:scale-105"
                 style={{
                   padding: "1rem 2rem",
-                  backgroundColor: "#059669",
+                  backgroundColor: "#10b981",
                   color: "white",
                   fontWeight: "600",
                   borderRadius: "0.5rem",
@@ -1123,7 +1147,7 @@ const BusinessOverview = ({ business, onBack }) => {
                   e.target.style.transform = "scale(1.05)";
                 }}
                 onMouseOut={(e) => {
-                  e.target.style.backgroundColor = "#059669";
+                  e.target.style.backgroundColor = "#10b981";
                   e.target.style.transform = "scale(1)";
                 }}
               >
@@ -1133,13 +1157,14 @@ const BusinessOverview = ({ business, onBack }) => {
               <div
                 className="bg-white p-6 rounded-lg shadow-lg max-w-lg mx-auto"
                 style={{
-                  backgroundColor: "white",
+                  backgroundColor: "black",
                   padding: "1.5rem",
                   borderRadius: "0.5rem",
                   boxShadow:
                     "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
                   maxWidth: "32rem",
                   margin: "0 auto",
+                  border: "1px solid #374151",
                 }}
               >
                 <h3
@@ -1148,6 +1173,7 @@ const BusinessOverview = ({ business, onBack }) => {
                     fontSize: "1.25rem",
                     fontWeight: "600",
                     marginBottom: "1rem",
+                    color: "white",
                   }}
                 >
                   Invest in {business.name}
@@ -1158,7 +1184,7 @@ const BusinessOverview = ({ business, onBack }) => {
                     className="block text-gray-600 mb-2"
                     style={{
                       display: "block",
-                      color: "#4b5563",
+                      color: "#9ca3af",
                       marginBottom: "0.5rem",
                     }}
                   >
@@ -1173,8 +1199,10 @@ const BusinessOverview = ({ business, onBack }) => {
                     style={{
                       width: "100%",
                       padding: "0.75rem",
-                      border: "1px solid #d1d5db",
+                      border: "1px solid #374151",
                       borderRadius: "0.375rem",
+                      backgroundColor: "black",
+                      color: "white",
                     }}
                   />
                 </div>
@@ -1182,16 +1210,17 @@ const BusinessOverview = ({ business, onBack }) => {
                 <div
                   className="bg-blue-50 p-4 rounded-md mb-4"
                   style={{
-                    backgroundColor: "#eff6ff",
+                    backgroundColor: "#111827",
                     padding: "1rem",
                     borderRadius: "0.375rem",
                     marginBottom: "1rem",
+                    border: "1px solid #374151",
                   }}
                 >
                   <h4
                     className="text-blue-800 font-semibold mb-2"
                     style={{
-                      color: "#1e40af",
+                      color: "#60a5fa",
                       fontWeight: "600",
                       marginBottom: "0.5rem",
                     }}
@@ -1201,7 +1230,7 @@ const BusinessOverview = ({ business, onBack }) => {
                   <p
                     className="text-gray-700 text-sm mb-1"
                     style={{
-                      color: "#374151",
+                      color: "#9ca3af",
                       fontSize: "0.875rem",
                       marginBottom: "0.25rem",
                     }}
@@ -1211,7 +1240,7 @@ const BusinessOverview = ({ business, onBack }) => {
                   <p
                     className="text-gray-700 text-sm"
                     style={{
-                      color: "#374151",
+                      color: "#9ca3af",
                       fontSize: "0.875rem",
                     }}
                   >
@@ -1229,18 +1258,18 @@ const BusinessOverview = ({ business, onBack }) => {
                     style={{
                       flex: 1,
                       padding: "0.75rem",
-                      border: "1px solid #d1d5db",
-                      color: "#4b5563",
+                      border: "1px solid #374151",
+                      color: "#9ca3af",
                       fontWeight: "500",
                       borderRadius: "0.375rem",
-                      backgroundColor: "white",
+                      backgroundColor: "black",
                       cursor: "pointer",
                     }}
                     onMouseOver={(e) => {
-                      e.target.style.backgroundColor = "#f9fafb";
+                      e.target.style.backgroundColor = "#111827";
                     }}
                     onMouseOut={(e) => {
-                      e.target.style.backgroundColor = "white";
+                      e.target.style.backgroundColor = "black";
                     }}
                   >
                     Cancel
@@ -1251,7 +1280,7 @@ const BusinessOverview = ({ business, onBack }) => {
                     style={{
                       flex: 1,
                       padding: "0.75rem",
-                      backgroundColor: "#059669",
+                      backgroundColor: "#10b981",
                       color: "white",
                       fontWeight: "500",
                       borderRadius: "0.375rem",
@@ -1262,7 +1291,7 @@ const BusinessOverview = ({ business, onBack }) => {
                       e.target.style.backgroundColor = "#047857";
                     }}
                     onMouseOut={(e) => {
-                      e.target.style.backgroundColor = "#059669";
+                      e.target.style.backgroundColor = "#10b981";
                     }}
                   >
                     Confirm Investment
@@ -1525,12 +1554,14 @@ const MapScreen = ({ budget }) => {
                     padding: "12px",
                     maxWidth: "200px",
                     textAlign: "center",
+                    backgroundColor: "white",
+                    borderRadius: "6px",
                   }}
                 >
                   <h3
                     style={{
                       marginBottom: "8px",
-                      color: "#000000",
+                      color: "#111827",
                       fontSize: "16px",
                       fontWeight: "600",
                     }}
@@ -1539,7 +1570,7 @@ const MapScreen = ({ budget }) => {
                   </h3>
                   <p
                     style={{
-                      color: "#666666",
+                      color: "#4b5563",
                       fontSize: "14px",
                       marginBottom: "12px",
                     }}
