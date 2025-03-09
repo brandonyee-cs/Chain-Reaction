@@ -896,36 +896,116 @@ const BusinessOverview = ({ business, onBack }) => {
               style={{
                 display: "flex",
                 justifyContent: "center",
-                marginBottom: "1.5rem",
-                height: "16rem",
+                marginBottom: "2rem",
+                height: "24rem",
+                position: "relative",
+                padding: "1rem",
               }}
             >
-              <PieChart width={400} height={250}>
+              <PieChart width={500} height={400}>
                 <Pie
                   data={supplyChainData}
-                  cx={200}
-                  cy={125}
+                  cx={250}
+                  cy={200}
                   labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
+                  outerRadius={120}
+                  innerRadius={80}
+                  paddingAngle={5}
                   dataKey="value"
+                  animationBegin={0}
+                  animationDuration={1500}
+                  animationEasing="ease-out"
                 >
                   {supplyChainData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.color}
+                      style={{
+                        filter: 'drop-shadow(0px 0px 6px rgba(0,0,0,0.2))',
+                        cursor: 'pointer',
+                      }}
+                    />
                   ))}
                 </Pie>
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
+                <Tooltip 
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div style={{
+                          backgroundColor: '#1a1a1a',
+                          padding: '0.75rem',
+                          border: '1px solid #374151',
+                          borderRadius: '0.5rem',
+                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                        }}>
+                          <p style={{ 
+                            color: payload[0].payload.color,
+                            fontWeight: '600',
+                            marginBottom: '0.25rem',
+                          }}>
+                            {payload[0].name}
+                          </p>
+                          <p style={{ 
+                            color: 'white',
+                            fontSize: '1.125rem',
+                            fontWeight: '600',
+                          }}>
+                            {payload[0].value}%
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Legend
+                  verticalAlign="bottom"
+                  height={36}
+                  content={({ payload }) => (
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      gap: '1.5rem',
+                      marginTop: '1rem',
+                    }}>
+                      {payload.map((entry, index) => (
+                        <div
+                          key={`legend-${index}`}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                          }}
+                        >
+                          <div style={{
+                            width: '0.75rem',
+                            height: '0.75rem',
+                            backgroundColor: entry.color,
+                            borderRadius: '50%',
+                            boxShadow: '0 0 6px rgba(0,0,0,0.2)',
+                          }} />
+                          <span style={{
+                            color: '#9ca3af',
+                            fontSize: '0.875rem',
+                            fontWeight: '500',
+                          }}>
+                            {entry.value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                />
               </PieChart>
             </div>
 
             <div
               className="space-y-2 mb-4"
               style={{
-                marginBottom: "1rem",
+                marginBottom: "1.5rem",
                 display: "flex",
                 flexDirection: "column",
-                gap: "0.5rem",
+                gap: "0.75rem",
               }}
             >
               {supplyChainData.map((item, index) => (
