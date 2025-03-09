@@ -10,17 +10,6 @@ from fastapi import FastAPI, HTTPException, Query
 from typing import List, Dict, Any, Optional
 import logging
 
-from fastapi.middleware.cors import CORSMiddleware
-app = FastAPI(title="Supply Chain Investment API")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[""],  # For development only
-    allow_credentials=True,
-    allow_methods=[""],
-    allow_headers=["*"],
-)
-
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -32,13 +21,13 @@ sys.path.append(str(project_root))
 # Import backend modules
 from backend.gemini.gemini import Gemini
 from backend.models.optimizationmodels import PortfolioOptimizationModel
-#from backend.nessie import NessieIntegration
+from backend.nessie import NessieIntegration
 
 # Initialize FastAPI app
 app = FastAPI(title="Supply Chain Investment API")
 
 # Initialize Nessie Integration
-#nessie = NessieIntegration()
+nessie = NessieIntegration()
 
 @app.post("/generate-supply-chain/")
 def generate_supply_chain(business_id: str):
@@ -110,165 +99,165 @@ def generate_investment(
 
 # Nessie Integration Endpoints
 
-#@app.post("/customer/create")
-#def create_customer(
-#    first_name: str,
-#    last_name: str,
-#    street_number: str,
-#    street_name: str,
-#    city: str,
-#    state: str,
-#    zipcode: str
-#):
-#    """Create a customer"""
-#    try:
-#        customer_id = nessie.create_customer(
-#            first_name, last_name, street_number, street_name, city, state, zipcode
-#        )
-#        return {"customer_id": customer_id}
-#    except Exception as e:
-#        logger.error(f"Error creating customer: {str(e)}")
-#        raise HTTPException(status_code=500, detail=str(e))
-#
-#@app.post("/account/create")
-#def create_account(
-#    customer_id: str,
-#    account_type: str,
-#    nickname: str,
-#    balance: float
-#):
-#    """Create an account for a customer"""
-#    try:
-#        account_id = nessie.create_account(customer_id, account_type, nickname, balance)
-#        return {"account_id": account_id}
-#    except Exception as e:
-#        logger.error(f"Error creating account: {str(e)}")
-#        raise HTTPException(status_code=500, detail=str(e))
-#
-#@app.post("/merchant/create")
-#def create_merchant(
-#    name: str,
-#    category: str,
-#    location: Optional[Dict] = None
-#):
-#    """Create a merchant"""
-#    try:
-#        merchant_id = nessie.create_merchant(name, category, location)
-#        return {"merchant_id": merchant_id}
-#    except Exception as e:
-#        logger.error(f"Error creating merchant: {str(e)}")
-#        raise HTTPException(status_code=500, detail=str(e))
-#
-#@app.get("/merchant/{merchant_id}")
-#def get_merchant(merchant_id: str):
-#    """Get a merchant by ID"""
-#    try:
-#        merchant = nessie.get_merchant_by_id(merchant_id)
-#        if merchant:
-#            return merchant
-#        else:
-#            raise HTTPException(status_code=404, detail="Merchant not found")
-#    except Exception as e:
-#        logger.error(f"Error getting merchant: {str(e)}")
-#        raise HTTPException(status_code=500, detail=str(e))
-#
-#@app.post("/purchase/create")
-#def make_purchase(
-#    customer_id: str,
-#    account_id: str,
-#    merchant_id: str,
-#    amount: float,
-#    description: Optional[str] = None
-#):
-#    """Record a purchase"""
-#    try:
-#        purchase = nessie.make_purchase(customer_id, account_id, merchant_id, amount, description)
-#        return purchase
-#    except Exception as e:
-#        logger.error(f"Error making purchase: {str(e)}")
-#        raise HTTPException(status_code=500, detail=str(e))
-#
-#@app.get("/merchants/{user}")
-#def get_merchant_ids(user: str):
-#    """Get merchant IDs with amounts spent by a user"""
-#    try:
-#        merchant_amounts = nessie.get_merchant_ids(user)
-#        return merchant_amounts
-#    except Exception as e:
-#        logger.error(f"Error getting merchant IDs: {str(e)}")
-#        raise HTTPException(status_code=500, detail=str(e))
-#
-#@app.get("/merchants/sorted/{user}")
-#def get_sorted_merchants(user: str):
-#    """Get merchants sorted by amount spent by a user"""
-#    try:
-#        sorted_merchants = nessie.get_sorted_merchants_by_amount(user)
-#        return {merchant_id: amount for merchant_id, amount in sorted_merchants}
-#    except Exception as e:
-#        logger.error(f"Error getting sorted merchants: {str(e)}")
-#        raise HTTPException(status_code=500, detail=str(e))
-#
-#@app.post("/supply-chain/add")
-#def add_supply_chain(
-#    business_id: str,
-#    supply_chain_components: List[str]
-#):
-#    """Add supply chain components for a business"""
-#    try:
-#        nessie.add_supply_chain(business_id, supply_chain_components)
-#        return {"status": "success", "business_id": business_id}
-#    except Exception as e:
-#        logger.error(f"Error adding supply chain: {str(e)}")
-#        raise HTTPException(status_code=500, detail=str(e))
-#
-#@app.get("/supply-chain/{business_id}")
-#def get_supply_chain_by_id(business_id: str):
-#    """Get supply chain components for a business"""
-#    try:
-#        supply_chain = nessie.get_supply_chain(business_id)
-#        return {"business_id": business_id, "supply_chain": supply_chain}
-#    except Exception as e:
-#        logger.error(f"Error getting supply chain: {str(e)}")
-#        raise HTTPException(status_code=500, detail=str(e))
-#
-#@app.get("/investment/opportunities/{user}")
-#def get_investment_opportunities(user: str):
-#    """Get investment opportunities based on user's purchase history"""
-#    try:
-#        opportunities = nessie.get_investment_opportunities(user)
-#        return {"opportunities": opportunities}
-#    except Exception as e:
-#        logger.error(f"Error getting investment opportunities: {str(e)}")
-#        raise HTTPException(status_code=500, detail=str(e))
-#
-#@app.post("/investment/add")
-#def add_investment(
-#    user: str,
-#    merchant_id: str,
-#    supply_chain_component: str,
-#    amount: float,
-#    additional_details: Optional[Dict] = None
-#):
-#    """Add an investment to the user's portfolio"""
-#    try:
-#        investment_details = {
-#            "merchant_id": merchant_id,
-#            "supply_chain_component": supply_chain_component,
-#            "amount": amount
-#        }
-#        
-#        if additional_details:
-#            investment_details.update(additional_details)
-#        
-#        success = nessie.add_investment(user, investment_details)
-#        
-#        if success:
-#            return {"status": "success", "user": user, "investment": investment_details}
-#        else:
-#            raise HTTPException(status_code=404, detail=f"User {user} not found")
-#    except Exception as e:
-#        logger.error(f"Error adding investment: {str(e)}")
-#        raise HTTPException(status_code=500, detail=str(e))
+@app.post("/customer/create")
+def create_customer(
+    first_name: str,
+    last_name: str,
+    street_number: str,
+    street_name: str,
+    city: str,
+    state: str,
+    zipcode: str
+):
+    """Create a customer"""
+    try:
+        customer_id = nessie.create_customer(
+            first_name, last_name, street_number, street_name, city, state, zipcode
+        )
+        return {"customer_id": customer_id}
+    except Exception as e:
+        logger.error(f"Error creating customer: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/account/create")
+def create_account(
+    customer_id: str,
+    account_type: str,
+    nickname: str,
+    balance: float
+):
+    """Create an account for a customer"""
+    try:
+        account_id = nessie.create_account(customer_id, account_type, nickname, balance)
+        return {"account_id": account_id}
+    except Exception as e:
+        logger.error(f"Error creating account: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/merchant/create")
+def create_merchant(
+    name: str,
+    category: str,
+    location: Optional[Dict] = None
+):
+    """Create a merchant"""
+    try:
+        merchant_id = nessie.create_merchant(name, category, location)
+        return {"merchant_id": merchant_id}
+    except Exception as e:
+        logger.error(f"Error creating merchant: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/merchant/{merchant_id}")
+def get_merchant(merchant_id: str):
+    """Get a merchant by ID"""
+    try:
+        merchant = nessie.get_merchant_by_id(merchant_id)
+        if merchant:
+            return merchant
+        else:
+            raise HTTPException(status_code=404, detail="Merchant not found")
+    except Exception as e:
+        logger.error(f"Error getting merchant: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/purchase/create")
+def make_purchase(
+    customer_id: str,
+    account_id: str,
+    merchant_id: str,
+    amount: float,
+    description: Optional[str] = None
+):
+    """Record a purchase"""
+    try:
+        purchase = nessie.make_purchase(customer_id, account_id, merchant_id, amount, description)
+        return purchase
+    except Exception as e:
+        logger.error(f"Error making purchase: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/merchants/{user}")
+def get_merchant_ids(user: str):
+    """Get merchant IDs with amounts spent by a user"""
+    try:
+        merchant_amounts = nessie.get_merchant_ids(user)
+        return merchant_amounts
+    except Exception as e:
+        logger.error(f"Error getting merchant IDs: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/merchants/sorted/{user}")
+def get_sorted_merchants(user: str):
+    """Get merchants sorted by amount spent by a user"""
+    try:
+        sorted_merchants = nessie.get_sorted_merchants_by_amount(user)
+        return {merchant_id: amount for merchant_id, amount in sorted_merchants}
+    except Exception as e:
+        logger.error(f"Error getting sorted merchants: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/supply-chain/add")
+def add_supply_chain(
+    business_id: str,
+    supply_chain_components: List[str]
+):
+    """Add supply chain components for a business"""
+    try:
+        nessie.add_supply_chain(business_id, supply_chain_components)
+        return {"status": "success", "business_id": business_id}
+    except Exception as e:
+        logger.error(f"Error adding supply chain: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/supply-chain/{business_id}")
+def get_supply_chain_by_id(business_id: str):
+    """Get supply chain components for a business"""
+    try:
+        supply_chain = nessie.get_supply_chain(business_id)
+        return {"business_id": business_id, "supply_chain": supply_chain}
+    except Exception as e:
+        logger.error(f"Error getting supply chain: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/investment/opportunities/{user}")
+def get_investment_opportunities(user: str):
+    """Get investment opportunities based on user's purchase history"""
+    try:
+        opportunities = nessie.get_investment_opportunities(user)
+        return {"opportunities": opportunities}
+    except Exception as e:
+        logger.error(f"Error getting investment opportunities: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/investment/add")
+def add_investment(
+    user: str,
+    merchant_id: str,
+    supply_chain_component: str,
+    amount: float,
+    additional_details: Optional[Dict] = None
+):
+    """Add an investment to the user's portfolio"""
+    try:
+        investment_details = {
+            "merchant_id": merchant_id,
+            "supply_chain_component": supply_chain_component,
+            "amount": amount
+        }
+        
+        if additional_details:
+            investment_details.update(additional_details)
+        
+        success = nessie.add_investment(user, investment_details)
+        
+        if success:
+            return {"status": "success", "user": user, "investment": investment_details}
+        else:
+            raise HTTPException(status_code=404, detail=f"User {user} not found")
+    except Exception as e:
+        logger.error(f"Error adding investment: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

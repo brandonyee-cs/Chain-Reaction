@@ -5,6 +5,161 @@ import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import { Cell, Pie, PieChart, Tooltip as RechartsTooltip } from "recharts";
 import businessData from "../data/small_business_data.json";
 
+// API Debug Component
+const ApiDebug = () => {
+  const [apiStatus, setApiStatus] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showDebug, setShowDebug] = useState(false);
+
+  useEffect(() => {
+    const checkApi = async () => {
+      try {
+        setIsLoading(true);
+        // Simple fetch to root endpoint to check if API is running
+        const response = await fetch('http://localhost:8000/');
+        const data = await response.json();
+        setApiStatus({
+          ok: response.ok,
+          status: response.status,
+          statusText: response.statusText,
+          data
+        });
+      } catch (error) {
+        console.error("API check failed:", error);
+        setError(error.message);
+        setApiStatus({
+          ok: false,
+          status: 0,
+          statusText: error.message
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkApi();
+  }, []);
+
+  const toggleDebug = () => {
+    setShowDebug(!showDebug);
+  };
+
+  if (!showDebug) {
+    return (
+      <div style={{
+        position: 'fixed',
+        bottom: '10px',
+        right: '10px',
+        zIndex: 2000,
+      }}>
+        <button 
+          onClick={toggleDebug}
+          style={{
+            backgroundColor: apiStatus?.ok ? '#10b981' : '#ef4444',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            padding: '5px 10px',
+            cursor: 'pointer',
+            fontSize: '12px',
+          }}
+        >
+          API {apiStatus?.ok ? 'Connected' : 'Disconnected'}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: '10px',
+      right: '10px',
+      width: '300px',
+      backgroundColor: '#1f2937',
+      color: 'white',
+      padding: '10px',
+      borderRadius: '6px',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+      zIndex: 2000,
+    }}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '10px',
+      }}>
+        <h3 style={{ 
+          fontSize: '14px', 
+          margin: 0, 
+          color: '#ffffff',
+          fontWeight: 600,
+        }}>API Connectivity Debug</h3>
+        <button 
+          onClick={toggleDebug}
+          style={{
+            backgroundColor: 'transparent',
+            border: 'none',
+            color: '#9ca3af',
+            cursor: 'pointer',
+            fontSize: '16px',
+          }}
+        >
+          ×
+        </button>
+      </div>
+
+      {isLoading ? (
+        <p style={{ fontSize: '12px', color: '#9ca3af' }}>Checking API status...</p>
+      ) : error ? (
+        <div>
+          <p style={{ fontSize: '12px', color: '#ef4444' }}>
+            Error checking API: {error}
+          </p>
+        </div>
+      ) : (
+        <div>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '6px', 
+            marginBottom: '8px' 
+          }}>
+            <div style={{ 
+              width: '10px', 
+              height: '10px', 
+              borderRadius: '50%', 
+              backgroundColor: apiStatus?.ok ? '#10b981' : '#ef4444' 
+            }}></div>
+            <span style={{ 
+              fontSize: '12px', 
+              color: apiStatus?.ok ? '#10b981' : '#ef4444', 
+              fontWeight: 600 
+            }}>
+              API {apiStatus?.ok ? 'Connected' : 'Disconnected'}
+            </span>
+          </div>
+
+          <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '8px' }}>
+            <p style={{ margin: '4px 0' }}>Status: {apiStatus?.status} {apiStatus?.statusText}</p>
+            <p style={{ margin: '4px 0' }}>API URL: http://localhost:8000</p>
+          </div>
+
+          <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+            <h4 style={{ fontSize: '12px', color: '#ffffff', marginBottom: '4px' }}>Troubleshooting:</h4>
+            <ul style={{ paddingLeft: '16px', margin: 0 }}>
+              <li>Ensure FastAPI server is running</li>
+              <li>Check CORS configuration</li>
+              <li>Verify API endpoints</li>
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Supply Chain List Component (text-only, no visual diagram)
 const SupplyChainList = ({ supplyChainList }) => {
   if (!supplyChainList || supplyChainList.length === 0) {
@@ -235,136 +390,151 @@ const EditableInvestmentPieChart = ({ investmentData, setInvestmentData }) => {
   );
 };
 
-// Business Details Component
-const BusinessDetailsView = ({ business, onBack }) => {
-  const [activeView, setActiveView] = useState("overview");
-  const [showInvestmentForm, setShowInvestmentForm] = useState(false);
+// Business Overview Component
+const BusinessOverview = ({ business, onBack }) => {
+  // State variables for generating and displaying data
+  const [showSupplyChain, setShowSupplyChain] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [supplyChainData, setSupplyChainData] = useState(null);
+  const [isGeneratingInvestment, setIsGeneratingInvestment] = useState(false);
+  const [investmentData, setInvestmentData] = useState(null);
+  const [error, setError] = useState(null);
 
-  // Mock supply chain data
-  const supplyChainData = [
-    { name: "Raw Materials", value: 35, color: "#10b981" },
-    { name: "Equipment", value: 25, color: "#f59e0b" },
-    { name: "Services", value: 30, color: "#8b5cf6" },
-    { name: "Distribution", value: 10, color: "#ef4444" },
-  ];
+  // Handle supply chain generation
+  const handleGenerateSupplyChain = async () => {
+    setIsGenerating(true);
+    setError(null);
+    
+    try {
+      console.log("Generating supply chain for business:", business.business_id);
+      
+      // Direct fetch call for debugging purposes
+      const response = await fetch('http://localhost:8000/generate-supply-chain/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ business_id: business.business_id })
+      });
+      
+      console.log("Supply chain API response status:", response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API responded with status ${response.status}: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log("Supply chain data received:", data);
+      
+      setSupplyChainData(data);
+      setShowSupplyChain(true);
+    } catch (error) {
+      console.error('Error generating supply chain:', error);
+      setError(`Failed to generate supply chain: ${error.message}`);
+      
+      // Fallback to mock data if API call fails
+      const mockData = {
+        supply_chain_text: "Raw Materials, Component Manufacturing, Assembly, Distribution, Retail, Consumer",
+        supply_chain_list: ["Raw Materials", "Component Manufacturing", "Assembly", "Distribution", "Retail", "Consumer"]
+      };
+      console.log("Using mock supply chain data:", mockData);
+      setSupplyChainData(mockData);
+      setShowSupplyChain(true);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+  
+  // Handle investment generation
+  const handleGenerateInvestment = async () => {
+    if (!supplyChainData || !supplyChainData.supply_chain_text) {
+      setError('No supply chain data available. Please generate a supply chain first.');
+      return;
+    }
+    
+    setIsGeneratingInvestment(true);
+    setError(null);
+    
+    // Prepare investment parameters
+    const params = {
+      supply_chain: supplyChainData.supply_chain_text,
+      investment_amount: Math.round(business.annual_revenue * 0.1),
+      min_investment_score: 0.60,
+      risk_aversion: 2.0,
+      max_weight_per_stock: 0.3
+    };
+    
+    try {
+      console.log("Generating investment with params:", params);
+      
+      // Direct fetch call for debugging purposes
+      const response = await fetch('http://localhost:8000/generate-investment/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params)
+      });
+      
+      console.log("Investment API response status:", response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API responded with status ${response.status}: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log("Investment data received:", data);
+      
+      setInvestmentData(data);
+    } catch (error) {
+      console.error('Error generating investment:', error);
+      setError(`Failed to generate investment portfolio: ${error.message}`);
+      
+      // Fallback to mock data
+      const mockInvestmentData = {
+        portfolio: [
+          { ticker: "AMZN", price: 130.50, investment: 2500 },
+          { ticker: "WMT", price: 165.75, investment: 2000 },
+          { ticker: "TGT", price: 145.20, investment: 1500 },
+          { ticker: "COST", price: 550.30, investment: 1300 },
+          { ticker: "UPS", price: 180.10, investment: 1000 },
+          { ticker: "FDX", price: 250.30, investment: 1000 },
+          { ticker: "SHOP", price: 75.60, investment: 700 },
+        ],
+        total_investment: 10000,
+      };
+      console.log("Using mock investment data:", mockInvestmentData);
+      setInvestmentData(mockInvestmentData);
+    } finally {
+      setIsGeneratingInvestment(false);
+    }
+  };
 
-  const InvestmentForm = () => (
-    <div
-      style={{
-        position: "fixed",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        backgroundColor: "black",
-        padding: "2rem",
-        borderRadius: "8px",
-        boxShadow:
-          "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
-        width: "90%",
-        maxWidth: "500px",
-        zIndex: 2000,
-      }}
-    >
-      <h2
-        style={{ marginBottom: "1rem", fontSize: "1.5rem", fontWeight: "600" }}
-      >
-        Invest in {business.name}
-      </h2>
-
-      <div style={{ marginBottom: "1.5rem" }}>
-        <label
-          style={{ display: "block", marginBottom: "0.5rem", color: "#4b5563" }}
-        >
-          Investment Amount ($)
-        </label>
-        <input
-          type="number"
-          defaultValue={Math.round(business.annual_revenue * 0.1)}
-          min="100"
-          step="100"
-          style={{
-            width: "100%",
-            padding: "0.75rem",
-            border: "1px solid #d1d5db",
-            borderRadius: "0.375rem",
-            fontSize: "1rem",
-          }}
-        />
-      </div>
-
+  // Render error message if there is one
+  const renderError = () => {
+    if (!error) return null;
+    
+    return (
       <div
         style={{
-          backgroundColor: "#f0f9ff",
           padding: "1rem",
+          backgroundColor: "#fee2e2",
+          color: "#b91c1c",
           borderRadius: "0.5rem",
-          marginBottom: "1.5rem",
+          marginBottom: "1rem",
+          border: "1px solid #ef4444",
         }}
       >
-        <h3
-          style={{
-            fontSize: "1rem",
-            fontWeight: "600",
-            marginBottom: "0.5rem",
-            color: "#0369a1",
-          }}
-        >
-          Investment Summary
-        </h3>
-        <p
-          style={{
-            color: "#4b5563",
-            fontSize: "0.875rem",
-            marginBottom: "0.5rem",
-          }}
-        >
-          Expected Return: 12-15% Annual
-        </p>
-        <p style={{ color: "#4b5563", fontSize: "0.875rem" }}>
-          Term: 24-36 months
-        </p>
+        {error}
       </div>
-
-      <div style={{ display: "flex", gap: "1rem" }}>
-        <button
-          onClick={() => setShowInvestmentForm(false)}
-          style={{
-            padding: "0.75rem 1rem",
-            borderRadius: "0.375rem",
-            border: "1px solid #d1d5db",
-            backgroundColor: "white",
-            color: "#4b5563",
-            fontWeight: "500",
-            cursor: "pointer",
-            flex: 1,
-          }}
-        >
-          Cancel
-        </button>
-        <button
-          onClick={() => {
-            alert("Investment submitted successfully!");
-            setShowInvestmentForm(false);
-          }}
-          style={{
-            padding: "0.75rem 1rem",
-            borderRadius: "0.375rem",
-            backgroundColor: "#059669",
-            color: "white",
-            border: "none",
-            fontWeight: "500",
-            cursor: "pointer",
-            flex: 1,
-          }}
-        >
-          Confirm Investment
-        </button>
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div
-      className="business-details"
+      className="business-overview"
       style={{
         position: "fixed",
         top: 0,
@@ -377,8 +547,7 @@ const BusinessDetailsView = ({ business, onBack }) => {
         overflow: "auto",
       }}
     >
-      {showInvestmentForm && <InvestmentForm />}
-
+      {/* Back Button */}
       <button
         onClick={onBack}
         style={{
@@ -396,12 +565,21 @@ const BusinessDetailsView = ({ business, onBack }) => {
         ← Back to Map
       </button>
 
+      {/* Error message */}
+      {renderError()}
+
+      {/* Business Header */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-start",
           marginBottom: "1rem",
+          backgroundColor: "black",
+          padding: "1rem",
+          borderRadius: "0.5rem",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          border: "1px solid #374151",
         }}
       >
         <div>
@@ -435,531 +613,8 @@ const BusinessDetailsView = ({ business, onBack }) => {
         </div>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "1rem",
-          marginBottom: "1rem",
-          background: "#1a1a1a",
-          padding: "0.5rem",
-          borderRadius: "0.5rem",
-          border: "1px solid #374151",
-        }}
-      >
-        <button
-          onClick={() => setActiveView("overview")}
-          style={{
-            padding: "0.5rem 1rem",
-            borderRadius: "0.25rem",
-            background: activeView === "overview" ? "#2563eb" : "transparent",
-            color: activeView === "overview" ? "white" : "#9ca3af",
-            border: "none",
-            fontWeight: "500",
-            cursor: "pointer",
-          }}
-        >
-          Business Overview
-        </button>
-        <button
-          onClick={() => setActiveView("supplyChain")}
-          style={{
-            padding: "0.5rem 1rem",
-            borderRadius: "0.25rem",
-            background: activeView === "supplyChain" ? "#2563eb" : "transparent",
-            color: activeView === "supplyChain" ? "white" : "#9ca3af",
-            border: "none",
-            fontWeight: "500",
-            cursor: "pointer",
-          }}
-        >
-          Supply Chain
-        </button>
-      </div>
-
-      {activeView === "overview" ? (
-        <div>
-          <div
-            className="card"
-            style={{
-              backgroundColor: "#1a1a1a",
-              borderRadius: "8px",
-              padding: "20px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              marginBottom: "20px",
-              border: "1px solid #374151",
-            }}
-          >
-            <h3
-              style={{
-                fontSize: "18px",
-                fontWeight: "600",
-                marginBottom: "16px",
-                color: "white",
-              }}
-            >
-              Business Details
-            </h3>
-            <div style={{ display: "grid", gap: "12px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#9ca3af" }}>Location</span>
-                <span style={{ fontWeight: "500", color: "white" }}>{business.address}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#9ca3af" }}>Neighborhood</span>
-                <span style={{ fontWeight: "500", color: "white" }}>
-                  {business.neighborhood}
-                </span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#9ca3af" }}>Square Footage</span>
-                <span style={{ fontWeight: "500", color: "white" }}>
-                  {business.sq_footage} sq ft
-                </span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#9ca3af" }}>Contact</span>
-                <span style={{ fontWeight: "500", color: "white" }}>{business.phone}</span>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="card"
-            style={{
-              backgroundColor: "#1a1a1a",
-              borderRadius: "8px",
-              padding: "20px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              border: "1px solid #374151",
-            }}
-          >
-            <h3
-              style={{
-                fontSize: "18px",
-                fontWeight: "600",
-                marginBottom: "16px",
-                color: "white",
-              }}
-            >
-              Investment Opportunity
-            </h3>
-            <div style={{ display: "grid", gap: "12px", marginBottom: "20px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#9ca3af" }}>Investment Needed</span>
-                <span style={{ fontWeight: "600", color: "#34d399" }}>
-                  ${Math.round(business.annual_revenue * 0.1).toLocaleString()}
-                </span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#9ca3af" }}>Expected Return</span>
-                <span style={{ fontWeight: "500", color: "#60a5fa" }}>
-                  12-15% Annual
-                </span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#9ca3af" }}>Investment Term</span>
-                <span style={{ fontWeight: "500", color: "white" }}>24-36 months</span>
-              </div>
-            </div>
-            <button
-              style={{
-                width: "100%",
-                padding: "12px",
-                backgroundColor: "#059669",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                fontWeight: "600",
-                cursor: "pointer",
-                transition: "all 0.2s",
-              }}
-              onClick={() => setShowInvestmentForm(true)}
-              onMouseOver={(e) => {
-                e.target.style.transform = "scale(1.02)";
-                e.target.style.filter = "brightness(1.1)";
-              }}
-              onMouseOut={(e) => {
-                e.target.style.transform = "scale(1)";
-                e.target.style.filter = "brightness(1)";
-              }}
-            >
-              Invest Now
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div>
-          <div
-            className="card"
-            style={{
-              backgroundColor: "#1a1a1a",
-              borderRadius: "8px",
-              padding: "20px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              marginBottom: "20px",
-              border: "1px solid #374151",
-            }}
-          >
-            <h3
-              style={{
-                fontSize: "18px",
-                fontWeight: "600",
-                marginBottom: "16px",
-                color: "white",
-              }}
-            >
-              Supply Chain Breakdown
-            </h3>
-            <div style={{ marginBottom: "20px" }}>
-              {supplyChainData.map((item, index) => (
-                <div
-                  key={index}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "12px",
-                    backgroundColor: "#111827",
-                    borderRadius: "6px",
-                    marginBottom: "8px",
-                    borderLeft: `4px solid ${item.color}`,
-                    border: "1px solid #374151",
-                  }}
-                >
-                  <div>
-                    <h4 style={{ fontWeight: "600", marginBottom: "4px", color: "white" }}>
-                      {item.name}
-                    </h4>
-                    <p style={{ color: "#9ca3af", fontSize: "14px" }}>
-                      {item.value}% of supply chain
-                    </p>
-                  </div>
-                  <div
-                    style={{
-                      width: "16px",
-                      height: "16px",
-                      borderRadius: "50%",
-                      backgroundColor: item.color,
-                    }}
-                  ></div>
-                </div>
-              ))}
-            </div>
-            <button
-              style={{
-                width: "100%",
-                padding: "12px",
-                backgroundColor: "#059669",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                fontWeight: "600",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                marginTop: "20px",
-              }}
-              onClick={() => setShowInvestmentForm(true)}
-              onMouseOver={(e) => {
-                e.target.style.transform = "scale(1.02)";
-                e.target.style.filter = "brightness(1.1)";
-              }}
-              onMouseOut={(e) => {
-                e.target.style.transform = "scale(1)";
-                e.target.style.filter = "brightness(1)";
-              }}
-            >
-              Invest Now
-            </button>
-          </div>
-
-          <div
-            className="info-box"
-            style={{
-              backgroundColor: "#111827",
-              padding: "20px",
-              borderRadius: "8px",
-              marginTop: "20px",
-              border: "1px solid #374151",
-            }}
-          >
-            <h3
-              style={{
-                fontSize: "18px",
-                fontWeight: "600",
-                marginBottom: "12px",
-                color: "white",
-              }}
-            >
-              Supply Chain Impact
-            </h3>
-            <p
-              style={{ color: "#9ca3af", fontSize: "14px", lineHeight: "1.5" }}
-            >
-              Investing in {business.name}'s supply chain helps strengthen local
-              business relationships, improve operational efficiency, and
-              support sustainable growth in the Queens community. Your
-              investment directly contributes to improving inventory management,
-              reducing costs, and creating more jobs in the area.
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Get color based on revenue
-const getRevenueColor = (revenue) => {
-  // Define revenue thresholds
-  const thresholds = {
-    low: 500000,
-    medium: 1000000,
-    high: 1500000,
-  };
-
-  // Color scale from light to dark green
-  if (revenue <= thresholds.low) {
-    return "#90EE90"; // Light green
-  } else if (revenue <= thresholds.medium) {
-    return "#32CD32"; // Lime green
-  } else if (revenue <= thresholds.high) {
-    return "#228B22"; // Forest green
-  } else {
-    return "#006400"; // Dark green
-  }
-};
-
-// Custom icon generator
-const getBusinessIcon = (business) => {
-  const color = getRevenueColor(business.annual_revenue);
-
-  return L.divIcon({
-    className: "custom-div-icon",
-    html: `
-      <div style="
-        background-color: ${color};
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        border: 2px solid white;
-        box-shadow: 0 0 4px rgba(0,0,0,0.3);
-      ">
-      </div>
-    `,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-    popupAnchor: [0, -12],
-  });
-};
-
-const BusinessOverview = ({ business, onBack }) => {
-  // State variables for generating and displaying data
-  const [showSupplyChain, setShowSupplyChain] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [showInvestForm, setShowInvestForm] = useState(false);
-  const [supplyChainData, setSupplyChainData] = useState(null);
-  const [isGeneratingInvestment, setIsGeneratingInvestment] = useState(false);
-  const [investmentData, setInvestmentData] = useState(null);
-
-  // Base API URL - change this to match your FastAPI server
-  const API_BASE_URL = 'http://localhost:8000';
-
-  // Handle supply chain generation
-  const handleGenerateSupplyChain = () => {
-    setIsGenerating(true);
-    const bus_id = business.business_id;
-    
-    console.log(`Calling supply chain API for business ID: ${bus_id}`);
-    
-    // Try both methods - query params and request body
-    fetch(`${API_BASE_URL}/generate-supply-chain/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ business_id: bus_id }),
-    })
-    .then(response => {
-      console.log('Supply chain API response status:', response.status);
-      if (!response.ok) {
-        console.log('Response not OK:', response.statusText);
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log("Supply chain data received:", data);
-      setSupplyChainData(data);
-      setShowSupplyChain(true);
-      setIsGenerating(false);
-    })
-    .catch(error => {
-      console.error('Error generating supply chain:', error);
-      
-      // Fallback to mock data if API call fails
-      const mockData = {
-        supply_chain_text: "Raw Materials, Component Manufacturing, Assembly, Distribution, Retail, Consumer",
-        supply_chain_list: ["Raw Materials", "Component Manufacturing", "Assembly", "Distribution", "Retail", "Consumer"]
-      };
-      console.log("Using mock supply chain data:", mockData);
-      setSupplyChainData(mockData);
-      setShowSupplyChain(true);
-      setIsGenerating(false);
-    });
-  };
-  
-  // Handle investment generation
-  const handleGenerateInvestment = () => {
-    if (!supplyChainData || !supplyChainData.supply_chain_text) {
-      console.error('No supply chain data available');
-      return;
-    }
-    
-    setIsGeneratingInvestment(true);
-    
-    // Prepare investment parameters
-    const params = {
-      supply_chain: supplyChainData.supply_chain_text,
-      investment_amount: Math.round(business.annual_revenue * 0.1),
-      min_investment_score: 0.60,
-      risk_aversion: 2.0,
-      max_weight_per_stock: 0.3
-    };
-    
-    console.log('Calling investment API with params:', params);
-    
-    // Call the backend API to generate investment - with request body
-    fetch(`${API_BASE_URL}/generate-investment/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(params),
-    })
-    .then(response => {
-      console.log('Investment API response status:', response.status);
-      if (!response.ok) {
-        console.log('Response not OK:', response.statusText);
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log("Investment data received:", data);
-      setInvestmentData(data);
-      setIsGeneratingInvestment(false);
-    })
-    .catch(error => {
-      console.error('Error generating investment:', error);
-      
-      // Fallback to mock data
-      const mockInvestmentData = {
-        portfolio: [
-          { ticker: "AMZN", price: 130.50, investment: 2500 },
-          { ticker: "WMT", price: 165.75, investment: 2000 },
-          { ticker: "TGT", price: 145.20, investment: 1500 },
-          { ticker: "COST", price: 550.30, investment: 1300 },
-          { ticker: "UPS", price: 180.10, investment: 1000 },
-          { ticker: "FDX", price: 250.30, investment: 1000 },
-          { ticker: "SHOP", price: 75.60, investment: 700 },
-        ],
-        total_investment: 10000,
-      };
-      console.log("Using mock investment data:", mockInvestmentData);
-      setInvestmentData(mockInvestmentData);
-      setIsGeneratingInvestment(false);
-    });
-  };
-
-  return (
-    <div
-      className="p-4 bg-gray-100 min-h-screen"
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "black",
-        zIndex: 1000,
-        padding: "20px",
-        overflow: "auto",
-      }}
-    >
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        className="mb-4 text-blue-600 flex items-center gap-1"
-        style={{
-          background: "none",
-          border: "none",
-          color: "#2563eb",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          gap: "4px",
-          marginBottom: "20px",
-          fontSize: "14px",
-        }}
-      >
-        ← Back to Map
-      </button>
-
-      {/* Business Header */}
-      <div
-        className="flex justify-between items-start mb-4 bg-white p-4 rounded-lg shadow"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: "1rem",
-          backgroundColor: "black",
-          padding: "1rem",
-          borderRadius: "0.5rem",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-          border: "1px solid #374151",
-        }}
-      >
-        <div>
-          <h2
-            className="text-2xl font-semibold mb-1"
-            style={{
-              fontSize: "24px",
-              fontWeight: "600",
-              marginBottom: "8px",
-              color: "white",
-            }}
-          >
-            {business.name}
-          </h2>
-          <p
-            className="text-gray-600 text-sm"
-            style={{ color: "#9ca3af", fontSize: "14px" }}
-          >
-            {business.business_type} · Established {business.established}
-          </p>
-        </div>
-        <div className="text-right" style={{ textAlign: "right" }}>
-          <p
-            className="text-green-600 font-semibold text-lg"
-            style={{
-              color: "#34d399",
-              fontSize: "18px",
-              fontWeight: "600",
-            }}
-          >
-            ${business.annual_revenue.toLocaleString()} Annual Revenue
-          </p>
-          <p
-            className="text-gray-500 text-sm"
-            style={{ color: "#9ca3af", fontSize: "14px" }}
-          >
-            {business.employees} Employees
-          </p>
-        </div>
-      </div>
-
       {/* Business Details */}
       <div
-        className="bg-white p-4 rounded-lg shadow mb-4"
         style={{
           backgroundColor: "black",
           padding: "1rem",
@@ -970,7 +625,6 @@ const BusinessOverview = ({ business, onBack }) => {
         }}
       >
         <h3
-          className="text-lg font-semibold mb-3"
           style={{
             fontSize: "18px",
             fontWeight: "600",
@@ -981,59 +635,34 @@ const BusinessOverview = ({ business, onBack }) => {
           Business Overview
         </h3>
 
-        <div className="grid gap-3" style={{ display: "grid", gap: "0.75rem" }}>
-          <div
-            className="flex justify-between"
-            style={{ display: "flex", justifyContent: "space-between" }}
-          >
-            <span className="text-gray-600" style={{ color: "#9ca3af" }}>
-              Location
-            </span>
-            <span className="font-medium" style={{ fontWeight: "500", color: "white" }}>
+        <div style={{ display: "grid", gap: "0.75rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ color: "#9ca3af" }}>Location</span>
+            <span style={{ fontWeight: "500", color: "white" }}>
               {business.address}
             </span>
           </div>
-          <div
-            className="flex justify-between"
-            style={{ display: "flex", justifyContent: "space-between" }}
-          >
-            <span className="text-gray-600" style={{ color: "#9ca3af" }}>
-              Neighborhood
-            </span>
-            <span className="font-medium" style={{ fontWeight: "500", color: "white" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ color: "#9ca3af" }}>Neighborhood</span>
+            <span style={{ fontWeight: "500", color: "white" }}>
               {business.neighborhood}
             </span>
           </div>
-          <div
-            className="flex justify-between"
-            style={{ display: "flex", justifyContent: "space-between" }}
-          >
-            <span className="text-gray-600" style={{ color: "#9ca3af" }}>
-              Square Footage
-            </span>
-            <span className="font-medium" style={{ fontWeight: "500", color: "white" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ color: "#9ca3af" }}>Square Footage</span>
+            <span style={{ fontWeight: "500", color: "white" }}>
               {business.sq_footage} sq ft
             </span>
           </div>
-          <div
-            className="flex justify-between"
-            style={{ display: "flex", justifyContent: "space-between" }}
-          >
-            <span className="text-gray-600" style={{ color: "#9ca3af" }}>
-              Contact
-            </span>
-            <span className="font-medium" style={{ fontWeight: "500", color: "white" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ color: "#9ca3af" }}>Contact</span>
+            <span style={{ fontWeight: "500", color: "white" }}>
               {business.phone}
             </span>
           </div>
-          <div
-            className="flex justify-between"
-            style={{ display: "flex", justifyContent: "space-between" }}
-          >
-            <span className="text-gray-600" style={{ color: "#9ca3af" }}>
-              Years in Operation
-            </span>
-            <span className="font-medium" style={{ fontWeight: "500", color: "white" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ color: "#9ca3af" }}>Years in Operation</span>
+            <span style={{ fontWeight: "500", color: "white" }}>
               {new Date().getFullYear() - business.established}
             </span>
           </div>
@@ -1042,7 +671,6 @@ const BusinessOverview = ({ business, onBack }) => {
 
       {/* Business Description */}
       <div
-        className="bg-white p-4 rounded-lg shadow mb-6"
         style={{
           backgroundColor: "black",
           padding: "1rem",
@@ -1053,7 +681,6 @@ const BusinessOverview = ({ business, onBack }) => {
         }}
       >
         <h3
-          className="text-lg font-semibold mb-3"
           style={{
             fontSize: "18px",
             fontWeight: "600",
@@ -1064,7 +691,6 @@ const BusinessOverview = ({ business, onBack }) => {
           Business Description
         </h3>
         <p
-          className="text-gray-700 mb-3 leading-relaxed"
           style={{
             color: "#9ca3af",
             marginBottom: "0.75rem",
@@ -1078,7 +704,6 @@ const BusinessOverview = ({ business, onBack }) => {
           local economy and community.
         </p>
         <p
-          className="text-gray-700 leading-relaxed"
           style={{
             color: "#9ca3af",
             lineHeight: "1.6",
@@ -1092,23 +717,14 @@ const BusinessOverview = ({ business, onBack }) => {
 
       {/* Generate Button Section */}
       {!showSupplyChain ? (
-        <div
-          className="text-center my-8"
-          style={{ textAlign: "center", margin: "2rem 0" }}
-        >
-          <p
-            className="mb-4 text-gray-600"
-            style={{ marginBottom: "1rem", color: "#9ca3af" }}
-          >
+        <div style={{ textAlign: "center", margin: "2rem 0" }}>
+          <p style={{ marginBottom: "1rem", color: "#9ca3af" }}>
             Generate a supply chain analysis and investment options for this
             business
           </p>
           <button
             onClick={handleGenerateSupplyChain}
             disabled={isGenerating}
-            className={`py-3 px-6 rounded-lg font-semibold inline-flex items-center gap-2 ${
-              isGenerating ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-            } text-white transition`}
             style={{
               padding: "0.75rem 1.5rem",
               borderRadius: "0.5rem",
@@ -1126,7 +742,6 @@ const BusinessOverview = ({ business, onBack }) => {
             {isGenerating ? (
               <>
                 <svg
-                  className="animate-spin h-4 w-4 text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -1138,7 +753,6 @@ const BusinessOverview = ({ business, onBack }) => {
                   }}
                 >
                   <circle
-                    className="opacity-25"
                     cx="12"
                     cy="12"
                     r="10"
@@ -1147,7 +761,6 @@ const BusinessOverview = ({ business, onBack }) => {
                     style={{ opacity: 0.25 }}
                   ></circle>
                   <path
-                    className="opacity-75"
                     fill="currentColor"
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     style={{ opacity: 0.75 }}
@@ -1164,7 +777,6 @@ const BusinessOverview = ({ business, onBack }) => {
         <>
           {/* Supply Chain Analysis */}
           <div
-            className="bg-white p-4 rounded-lg shadow mb-6"
             style={{
               backgroundColor: "black",
               padding: "1rem",
@@ -1175,7 +787,6 @@ const BusinessOverview = ({ business, onBack }) => {
             }}
           >
             <h3
-              className="text-lg font-semibold mb-4"
               style={{
                 fontSize: "18px",
                 fontWeight: "600",
@@ -1246,7 +857,6 @@ const BusinessOverview = ({ business, onBack }) => {
                   {isGeneratingInvestment ? (
                     <>
                       <svg
-                        className="animate-spin"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -1257,7 +867,6 @@ const BusinessOverview = ({ business, onBack }) => {
                         }}
                       >
                         <circle
-                          className="opacity-25"
                           cx="12"
                           cy="12"
                           r="10"
@@ -1266,7 +875,6 @@ const BusinessOverview = ({ business, onBack }) => {
                           style={{ opacity: 0.25 }}
                         ></circle>
                         <path
-                          className="opacity-75"
                           fill="currentColor"
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                           style={{ opacity: 0.75 }}
@@ -1293,6 +901,50 @@ const BusinessOverview = ({ business, onBack }) => {
       )}
     </div>
   );
+};
+
+// Get color based on revenue
+const getRevenueColor = (revenue) => {
+  // Define revenue thresholds
+  const thresholds = {
+    low: 500000,
+    medium: 1000000,
+    high: 1500000,
+  };
+
+  // Color scale from light to dark green
+  if (revenue <= thresholds.low) {
+    return "#90EE90"; // Light green
+  } else if (revenue <= thresholds.medium) {
+    return "#32CD32"; // Lime green
+  } else if (revenue <= thresholds.high) {
+    return "#228B22"; // Forest green
+  } else {
+    return "#006400"; // Dark green
+  }
+};
+
+// Custom icon generator
+const getBusinessIcon = (business) => {
+  const color = getRevenueColor(business.annual_revenue);
+
+  return L.divIcon({
+    className: "custom-div-icon",
+    html: `
+      <div style="
+        background-color: ${color};
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 0 4px rgba(0,0,0,0.3);
+      ">
+      </div>
+    `,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -12],
+  });
 };
 
 const MapScreen = ({ budget }) => {
@@ -1512,8 +1164,17 @@ const MapScreen = ({ budget }) => {
       <div style={{ height: "85vh", width: "100%" }}>
         <style>
           {`
-                  ${showBusinessDetails ? ".leaflet-control-zoom { display: none !important; }" : ""}
-                `}
+            ${showBusinessDetails ? ".leaflet-control-zoom { display: none !important; }" : ""}
+            
+            @keyframes spin {
+              from {
+                transform: rotate(0deg);
+              }
+              to {
+                transform: rotate(360deg);
+              }
+            }
+          `}
         </style>
         <MapContainer
           center={center}
@@ -1599,6 +1260,9 @@ const MapScreen = ({ budget }) => {
           ))}
         </MapContainer>
       </div>
+      
+      {/* API Debug indicator */}
+      <ApiDebug />
     </div>
   );
 };

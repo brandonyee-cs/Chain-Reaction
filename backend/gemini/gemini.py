@@ -171,6 +171,8 @@ class Gemini:
             
         Returns:
             Dictionary mapping industries to lists of related stock tickers
+
+        Ensure that the tickers are real and publicly traded on major exchanges.
         """
         try:
             # Construct a focused prompt for Gemini 2.0 Lite
