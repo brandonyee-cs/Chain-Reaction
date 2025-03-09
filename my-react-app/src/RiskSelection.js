@@ -131,8 +131,8 @@ const RiskSelection = ({ onSelectRisk }) => {
       // When setting the actual budget, enforce limits
       if (numValue < 500) {
         setBudget(500);
-      } else if (numValue > 55000) {
-        setBudget(55000);
+      } else if (numValue > 65000) {
+        setBudget(65000);
       } else {
         setBudget(numValue);
       }
@@ -144,9 +144,9 @@ const RiskSelection = ({ onSelectRisk }) => {
     if (inputValue === '' || parseInt(inputValue) < 500) {
       setBudget(500);
       setInputValue('500');
-    } else if (parseInt(inputValue) > 55000) {
-      setBudget(55000);
-      setInputValue('55000');
+    } else if (parseInt(inputValue) > 65000) {
+      setBudget(65000);
+      setInputValue('65000');
     }
     setIsEditing(false);
   };
@@ -537,7 +537,7 @@ const RiskSelection = ({ onSelectRisk }) => {
         <input
           type="range"
           min="500"
-          max="55000"
+          max="65000"
           value={budget}
           onChange={(e) => {
             const newBudget = parseInt(e.target.value);
@@ -563,7 +563,7 @@ const RiskSelection = ({ onSelectRisk }) => {
         }}
         className="risk-button"
         style={{
-          background: `linear-gradient(90deg, ${getBudgetColor(budget)}, ${getBudgetColor(Math.min(budget + 1000, 55000))})`,
+          background: `linear-gradient(90deg, ${getBudgetColor(budget)}, ${getBudgetColor(Math.min(budget + 1000, 65000))})`,
           boxShadow: `0 4px 6px ${getBudgetColor(budget)}33`,
           marginTop: '40px',
           width: 'auto',
