@@ -13,10 +13,10 @@ const RiskSelection = ({ onSelectRisk }) => {
     // Define thresholds for different phases
     const phases = [
       { threshold: 2000, color: '#fbbf24' },  // Warm yellow
-      { threshold: 4000, color: '#facc15' },  // Lighter yellow-green
-      { threshold: 6000, color: '#84cc16' },  // Light green
-      { threshold: 8000, color: '#22c55e' },  // Medium green
-      { threshold: 10000, color: '#16a34a' }  // Bright green
+      { threshold: 10000, color: '#facc15' },  // Lighter yellow-green
+      { threshold: 20000, color: '#84cc16' },  // Light green
+      { threshold: 40000, color: '#22c55e' },  // Medium green
+      { threshold: 50000, color: '#16a34a' }  // Bright green
     ];
 
     // math for color based on sliding amount!! 
@@ -131,8 +131,8 @@ const RiskSelection = ({ onSelectRisk }) => {
       // When setting the actual budget, enforce limits
       if (numValue < 500) {
         setBudget(500);
-      } else if (numValue > 10000) {
-        setBudget(10000);
+      } else if (numValue > 55000) {
+        setBudget(55000);
       } else {
         setBudget(numValue);
       }
@@ -144,9 +144,9 @@ const RiskSelection = ({ onSelectRisk }) => {
     if (inputValue === '' || parseInt(inputValue) < 500) {
       setBudget(500);
       setInputValue('500');
-    } else if (parseInt(inputValue) > 10000) {
-      setBudget(10000);
-      setInputValue('10000');
+    } else if (parseInt(inputValue) > 55000) {
+      setBudget(55000);
+      setInputValue('55000');
     }
     setIsEditing(false);
   };
@@ -537,7 +537,7 @@ const RiskSelection = ({ onSelectRisk }) => {
         <input
           type="range"
           min="500"
-          max="10000"
+          max="55000"
           value={budget}
           onChange={(e) => {
             const newBudget = parseInt(e.target.value);
@@ -563,7 +563,7 @@ const RiskSelection = ({ onSelectRisk }) => {
         }}
         className="risk-button"
         style={{
-          background: `linear-gradient(90deg, ${getBudgetColor(budget)}, ${getBudgetColor(Math.min(budget + 1000, 10000))})`,
+          background: `linear-gradient(90deg, ${getBudgetColor(budget)}, ${getBudgetColor(Math.min(budget + 1000, 55000))})`,
           boxShadow: `0 4px 6px ${getBudgetColor(budget)}33`,
           marginTop: '40px',
           width: 'auto',
