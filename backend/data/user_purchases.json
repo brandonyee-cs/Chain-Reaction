@@ -1,0 +1,54 @@
+{
+  "mock_customer_20250308201735": {
+    "username": "user_01735",
+    "account": {
+      "id": "mock_account_20250308201735",
+      "balance": 0,
+      "purchases": [
+        {
+          "purchase_id": "mock_purchase_20250308201735",
+          "merchant_id": "m_001",
+          "amount": 75,
+          "timestamp": "2025-03-08T20:17:35Z",
+          "description": "Dinner"
+        },
+        {
+          "purchase_id": "mock_purchase_20250308201735",
+          "merchant_id": "m_002",
+          "amount": 45,
+          "timestamp": "2025-03-08T20:17:35Z",
+          "description": "Books"
+        },
+        {
+          "purchase_id": "mock_purchase_20250308201735",
+          "merchant_id": "m_003",
+          "amount": 650,
+          "timestamp": "2025-03-08T20:17:35Z",
+          "description": "New Phone"
+        },
+        {
+          "purchase_id": "mock_purchase_20250308201735",
+          "merchant_id": "m_001",
+          "amount": 85,
+          "timestamp": "2025-03-08T20:17:35Z",
+          "description": "Family Dinner"
+        },
+        {
+          "purchase_id": "mock_purchase_20250308201735",
+          "merchant_id": "m_003",
+          "amount": 200,
+          "timestamp": "2025-03-08T20:17:35Z",
+          "description": "Headphones"
+        }
+      ]
+    },
+    "investments": [
+      {
+        "merchant_id": "m_003",
+        "supply_chain_component": "chip-manufacturers",
+        "amount": 1000,
+        "timestamp": "2025-03-08T20:17:35Z"
+      }
+    ]
+  }
+}

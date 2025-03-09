@@ -1,0 +1,20 @@
+{
+  "m_001": [
+    "local-farms",
+    "food-distributors",
+    "equipment-suppliers",
+    "kitchen-tools-manufacturers"
+  ],
+  "m_002": [
+    "publishers",
+    "paper-mills",
+    "printing-services",
+    "logistics-companies"
+  ],
+  "m_003": [
+    "chip-manufacturers",
+    "display-makers",
+    "battery-suppliers",
+    "assembly-plants"
+  ]
+}

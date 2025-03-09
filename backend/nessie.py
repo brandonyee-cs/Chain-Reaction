@@ -2,18 +2,39 @@ import requests
 import json
 import os
 import datetime
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 class NessieIntegration:
-    def __init__(self, api_key=None):
-        """Initialize the Nessie Integration with optional API key"""
-        self.api_key = api_key or os.environ.get('NESSIE_API_KEY')
-        self.base_url = "http://api.reimaginebanking.com"
-        self.merchants_db_file = "merchants.json"
-        self.user_purchases_file = "user_purchases.json"
-        self.supply_chain_file = "supply_chain.json"
+    def __init__(self, base_url="http://api.reimaginebanking.com"):
+        """Initialize the Nessie Integration with optional API key and base URL"""
+        self.api_key = os.environ.get('NESSIE_API_KEY')
+        self.base_url = base_url
+        self.merchants_db_file = "backend/data/merchants.json"
+        self.user_purchases_file = "backend/data/user_purchases.json"
+        self.supply_chain_file = "backend/data/supply_chain.json"
         
         # Initialize JSON databases if they don't exist
         self._initialize_db_files()
+        
+        # Test connection to API
+        self._test_connection()
+    
+    def _test_connection(self):
+        """Test the connection to the API"""
+        try:
+            url = f"{self.base_url}/customers?key={self.api_key}"
+            response = requests.get(url, timeout=5)
+            if response.status_code >= 400:
+                logger.warning(f"API connection test failed with status code {response.status_code}: {response.text}")
+            else:
+                logger.info("API connection successful")
+        except requests.exceptions.RequestException as e:
+            logger.error(f"API connection test failed: {e}")
+            logger.info("Continuing in offline mode - only local operations will work")
     
     def _initialize_db_files(self):
         """Initialize the JSON database files if they don't exist"""
@@ -25,6 +46,7 @@ class NessieIntegration:
             if not os.path.exists(file_path):
                 with open(file_path, 'w') as f:
                     json.dump(default_content, f)
+                logger.info(f"Created {file_path} database file")
     
     def _load_json(self, file_path):
         """Load JSON data from a file"""
@@ -32,6 +54,7 @@ class NessieIntegration:
             try:
                 return json.load(f)
             except json.JSONDecodeError:
+                logger.error(f"Error decoding {file_path}")
                 return {}
     
     def _save_json(self, file_path, data):
@@ -39,10 +62,34 @@ class NessieIntegration:
         with open(file_path, 'w') as f:
             json.dump(data, f, indent=2)
     
-    def create_customer(self, first_name, last_name, street_number, street_name, city, state, zipcode):
-        """Create a customer using the Nessie API endpoints directly"""
-        url = f"{self.base_url}/customers?key={self.api_key}"
+    def _api_request(self, method, endpoint, data=None):
+        """Make an API request with error handling"""
+        url = '{}/{}?key={}'.format(self.base_url, endpoint.lstrip('/'), self.api_key)
+        headers = {'content-type': 'application/json'}
         
+        try:
+            if method.lower() == 'get':
+                response = requests.get(url, headers=headers, timeout=10)
+            elif method.lower() == 'post':
+                response = requests.post(url, headers=headers, data=json.dumps(data), timeout=10)
+            elif method.lower() == 'put':
+                response = requests.put(url, headers=headers, data=json.dumps(data), timeout=10)
+            elif method.lower() == 'delete':
+                response = requests.delete(url, headers=headers, timeout=10)
+            else:
+                logger.error(f"Unsupported HTTP method: {method}")
+                return None
+            
+            # Log response for debugging
+            logger.debug(f"API response: {response.status_code} - {response.text}")
+            
+            return response
+        except requests.exceptions.RequestException as e:
+            logger.error(f"API request failed: {e}")
+            return None
+    
+    def create_customer(self, first_name, last_name, street_number, street_name, city, state, zipcode):
+        """Create a customer using the Nessie API endpoints"""
         payload = {
             "first_name": first_name,
             "last_name": last_name,
@@ -55,24 +102,23 @@ class NessieIntegration:
             }
         }
         
-        response = requests.post(
-            url, 
-            data=json.dumps(payload),
-            headers={'content-type': 'application/json'}
-        )
+        response = self._api_request('post', 'customers', payload)
         
-        if response.status_code == 201:
-            customer_id = response.json()['objectCreated']['_id']
-            print(f"Customer created with ID: {customer_id}")
+        if response and response.status_code == 201:
+            customer_id = response.json().get('objectCreated', {}).get('_id')
+            logger.info(f"Customer created with ID: {customer_id}")
             return customer_id
         else:
-            print(f"Failed to create customer: {response.text}")
-            return None
+            status = response.status_code if response else 'No response'
+            logger.error(f"Failed to create customer. Status: {status}")
+            
+            # Generate mock customer ID for offline mode
+            mock_id = f"mock_customer_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+            logger.info(f"Using mock customer ID: {mock_id}")
+            return mock_id
     
     def create_account(self, customer_id, account_type, nickname, balance):
-        """Create an account for a customer using the Nessie API endpoints directly"""
-        url = f"{self.base_url}/customers/{customer_id}/accounts?key={self.api_key}"
-        
+        """Create an account for a customer using the Nessie API endpoints"""
         payload = {
             "type": account_type,
             "nickname": nickname,
@@ -80,19 +126,21 @@ class NessieIntegration:
             "balance": balance
         }
         
-        response = requests.post(
-            url, 
-            data=json.dumps(payload),
-            headers={'content-type': 'application/json'}
-        )
+        endpoint = 'customers/{}/accounts'.format(customer_id)
+        response = self._api_request('post', endpoint, payload)
         
-        if response.status_code == 201:
-            account_id = response.json()['objectCreated']['_id']
-            print(f"Account created with ID: {account_id}")
+        if response and response.status_code == 201:
+            account_id = response.json().get('objectCreated', {}).get('_id')
+            logger.info(f"Account created with ID: {account_id}")
             return account_id
         else:
-            print(f"Failed to create account: {response.text}")
-            return None
+            status = response.status_code if response else 'No response'
+            logger.error(f"Failed to create account. Status: {status}")
+            
+            # Generate mock account ID for offline mode
+            mock_id = f"mock_account_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+            logger.info(f"Using mock account ID: {mock_id}")
+            return mock_id
     
     def create_merchant(self, name, category, location=None):
         """Create a merchant and save to the merchant database"""
@@ -112,6 +160,7 @@ class NessieIntegration:
         merchants["merchants"].append(merchant)
         self._save_json(self.merchants_db_file, merchants)
         
+        logger.info(f"Created merchant with ID: {merchant_id}")
         return merchant_id
     
     def get_merchant_by_id(self, merchant_id):
@@ -126,8 +175,6 @@ class NessieIntegration:
     
     def make_purchase(self, customer_id, account_id, merchant_id, amount, description=None):
         """Record a purchase from a customer to a merchant using Nessie API"""
-        url = f"{self.base_url}/accounts/{account_id}/purchases?key={self.api_key}"
-        
         payload = {
             "merchant_id": merchant_id,
             "medium": "balance",
@@ -139,47 +186,49 @@ class NessieIntegration:
         if description:
             payload["description"] = description
         
-        response = requests.post(
-            url,
-            data=json.dumps(payload),
-            headers={'content-type': 'application/json'}
-        )
+        endpoint = 'accounts/{}/purchases'.format(account_id)
+        response = self._api_request('post', endpoint, payload)
         
-        if response.status_code == 201:
-            purchase_id = response.json()['objectCreated']['_id']
-            print(f"Purchase created with ID: {purchase_id}")
-            
-            # Also record in our local database
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-            purchase = {
-                "purchase_id": purchase_id,
-                "merchant_id": merchant_id,
-                "amount": amount,
-                "timestamp": timestamp
-            }
-            
-            if description:
-                purchase["description"] = description
-            
-            user_purchases = self._load_json(self.user_purchases_file)
-            
-            if customer_id not in user_purchases:
-                user_purchases[customer_id] = {
-                    "username": f"user_{customer_id[-5:]}",
-                    "account": {
-                        "id": account_id,
-                        "balance": 0,
-                        "purchases": []
-                    }
-                }
-            
-            user_purchases[customer_id]["account"]["purchases"].append(purchase)
-            self._save_json(self.user_purchases_file, user_purchases)
-            
-            return purchase
+        purchase_id = None
+        if response and response.status_code == 201:
+            purchase_id = response.json().get('objectCreated', {}).get('_id')
+            logger.info(f"Purchase created with ID: {purchase_id}")
         else:
-            print(f"Failed to create purchase: {response.text}")
-            return None
+            status = response.status_code if response else 'No response'
+            logger.error(f"Failed to create purchase. Status: {status}")
+            
+            # Generate mock purchase ID for offline mode
+            purchase_id = f"mock_purchase_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+            logger.info(f"Using mock purchase ID: {purchase_id}")
+        
+        # Always record in local database
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        purchase = {
+            "purchase_id": purchase_id,
+            "merchant_id": merchant_id,
+            "amount": amount,
+            "timestamp": timestamp
+        }
+        
+        if description:
+            purchase["description"] = description
+        
+        user_purchases = self._load_json(self.user_purchases_file)
+        
+        if customer_id not in user_purchases:
+            user_purchases[customer_id] = {
+                "username": f"user_{customer_id[-5:]}",
+                "account": {
+                    "id": account_id,
+                    "balance": 0,
+                    "purchases": []
+                }
+            }
+        
+        user_purchases[customer_id]["account"]["purchases"].append(purchase)
+        self._save_json(self.user_purchases_file, user_purchases)
+        
+        return purchase
     
     def get_merchant_ids(self, user):
         """
@@ -226,6 +275,7 @@ class NessieIntegration:
         supply_chains = self._load_json(self.supply_chain_file)
         supply_chains[business_id] = supply_chain_components
         self._save_json(self.supply_chain_file, supply_chains)
+        logger.info(f"Added supply chain for business ID: {business_id}")
     
     def get_supply_chain(self, business_id):
         """Get supply chain components for a business"""
@@ -263,6 +313,7 @@ class NessieIntegration:
         user_purchases = self._load_json(self.user_purchases_file)
         
         if user not in user_purchases:
+            logger.error(f"User {user} not found")
             return False
         
         if "investments" not in user_purchases[user]:
@@ -272,32 +323,24 @@ class NessieIntegration:
         user_purchases[user]["investments"].append(investment_details)
         self._save_json(self.user_purchases_file, user_purchases)
         
+        logger.info(f"Added investment for user {user}")
         return True
 
 
 # Example usage
 def main():
-    # Replace with your actual API key
-    api_key = "your_api_key_here"
-    integration = NessieIntegration(api_key)
+    
+    integration = NessieIntegration()
     
     # Create a customer
     customer_id = integration.create_customer(
         "Jane", "Doe", "456", "Oak St", "Sometown", "CA", "54321"
     )
     
-    if not customer_id:
-        print("Failed to create customer. Exiting.")
-        return
-    
     # Create an account
     account_id = integration.create_account(
         customer_id, "Savings", "Main Account", 5000
     )
-    
-    if not account_id:
-        print("Failed to create account. Exiting.")
-        return
     
     # Create merchants
     restaurant = integration.create_merchant("Local Restaurant", "Food")

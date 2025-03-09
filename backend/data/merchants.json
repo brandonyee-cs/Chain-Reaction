@@ -1,0 +1,19 @@
+{
+  "merchants": [
+    {
+      "merchant_id": "m_001",
+      "name": "Local Restaurant",
+      "category": "Food"
+    },
+    {
+      "merchant_id": "m_002",
+      "name": "Book Haven",
+      "category": "Retail"
+    },
+    {
+      "merchant_id": "m_003",
+      "name": "Tech Galaxy",
+      "category": "Electronics"
+    }
+  ]
+}
