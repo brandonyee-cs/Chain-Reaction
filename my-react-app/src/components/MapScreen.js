@@ -2,8 +2,238 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import React, { useEffect, useState } from "react";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
-import { Cell, Legend, Pie, PieChart, Tooltip } from "recharts";
+import { Cell, Pie, PieChart, Tooltip as RechartsTooltip } from "recharts";
 import businessData from "../data/small_business_data.json";
+
+// Supply Chain List Component (text-only, no visual diagram)
+const SupplyChainList = ({ supplyChainList }) => {
+  if (!supplyChainList || supplyChainList.length === 0) {
+    return <p style={{ color: "#9ca3af" }}>No supply chain data available</p>;
+  }
+  
+  // Generate colors for nodes
+  const nodeColors = [
+    "#10b981", // green
+    "#f59e0b", // amber
+    "#8b5cf6", // purple
+    "#3b82f6", // blue
+    "#ec4899", // pink
+    "#f43f5e", // rose
+    "#6366f1", // indigo
+  ];
+
+  return (
+    <div style={{ marginBottom: "2rem" }}>
+      <h3 style={{
+        fontSize: "18px",
+        fontWeight: "600",
+        marginBottom: "1rem",
+        color: "white",
+      }}>
+        Supply Chain Components
+      </h3>
+      <div style={{ 
+        padding: "1rem",
+        backgroundColor: "#111827",
+        borderRadius: "0.5rem",
+        border: "1px solid #374151",
+      }}>
+        <div style={{ 
+          display: "flex", 
+          flexDirection: "column",
+          gap: "0.75rem",
+        }}>
+          {supplyChainList.map((node, index) => (
+            <div key={index} style={{
+              padding: "0.75rem 1rem",
+              backgroundColor: "#1f2937",
+              borderRadius: "0.375rem",
+              borderLeft: `4px solid ${nodeColors[index % nodeColors.length]}`,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}>
+              <div>
+                <span style={{ fontWeight: "600", color: "white" }}>
+                  {index + 1}. {node.trim()}
+                </span>
+              </div>
+              <div style={{
+                backgroundColor: nodeColors[index % nodeColors.length],
+                width: "1rem",
+                height: "1rem",
+                borderRadius: "50%",
+              }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Editable Investment Pie Chart Component
+const EditableInvestmentPieChart = ({ investmentData, setInvestmentData }) => {
+  if (!investmentData || !investmentData.portfolio || investmentData.portfolio.length === 0) {
+    return <p style={{ color: "#9ca3af" }}>No investment data available</p>;
+  }
+  
+  const handleInvestmentChange = (index, newValue) => {
+    // Create a copy of the investment data
+    const newInvestmentData = {...investmentData};
+    const newPortfolio = [...newInvestmentData.portfolio];
+    
+    // Update the investment amount
+    newPortfolio[index].investment = parseFloat(newValue);
+    
+    // Calculate new total
+    const newTotal = newPortfolio.reduce((sum, item) => sum + item.investment, 0);
+    
+    newInvestmentData.portfolio = newPortfolio;
+    newInvestmentData.total_investment = newTotal;
+    
+    // Update the state
+    setInvestmentData(newInvestmentData);
+  };
+  
+  // Generate colors for the pie chart
+  const COLORS = ['#10b981', '#f59e0b', '#8b5cf6', '#3b82f6', '#ec4899', '#f43f5e', '#6366f1'];
+  
+  return (
+    <div style={{
+      marginTop: "2rem",
+      padding: "1.5rem",
+      backgroundColor: "#1a1a1a",
+      borderRadius: "0.5rem",
+      border: "1px solid #374151",
+    }}>
+      <h3 style={{
+        fontSize: "18px",
+        fontWeight: "600",
+        marginBottom: "1.5rem",
+        color: "white",
+        textAlign: "center"
+      }}>
+        Investment Portfolio Allocation
+      </h3>
+      
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "2rem",
+      }}>
+        {/* Pie Chart */}
+        <div style={{ width: "100%", height: "300px", position: "relative" }}>
+          <PieChart width={400} height={300} style={{ margin: "0 auto" }}>
+            <Pie
+              data={investmentData.portfolio}
+              cx={200}
+              cy={150}
+              labelLine={true}
+              outerRadius={100}
+              fill="#8884d8"
+              dataKey="investment"
+              label={({ name, ticker, percent }) => 
+                `${ticker} (${(percent * 100).toFixed(0)}%)`
+              }
+            >
+              {investmentData.portfolio.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={COLORS[index % COLORS.length]} 
+                  stroke="#111"
+                />
+              ))}
+            </Pie>
+            <RechartsTooltip 
+              formatter={(value) => `$${value.toFixed(2)}`} 
+              labelFormatter={(index) => investmentData.portfolio[index].ticker}
+            />
+          </PieChart>
+        </div>
+        
+        {/* Investment Editor */}
+        <div style={{
+          width: "100%",
+          maxWidth: "500px",
+          backgroundColor: "#111827",
+          padding: "1.5rem",
+          borderRadius: "0.5rem",
+          border: "1px solid #374151",
+        }}>
+          <h4 style={{
+            fontSize: "16px",
+            fontWeight: "600",
+            marginBottom: "1rem",
+            color: "white",
+          }}>
+            Edit Investments
+          </h4>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            {investmentData.portfolio.map((item, index) => (
+              <div key={index} style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "0.5rem",
+                backgroundColor: "#1f2937",
+                borderRadius: "0.375rem",
+                borderLeft: `3px solid ${COLORS[index % COLORS.length]}`
+              }}>
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <span style={{ 
+                    fontWeight: "600",
+                    color: COLORS[index % COLORS.length]
+                  }}>
+                    {item.ticker}
+                  </span>
+                  <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>
+                    ${item.price.toFixed(2)} per share
+                  </span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <span style={{ color: "white" }}>$</span>
+                  <input
+                    type="number"
+                    value={item.investment}
+                    onChange={(e) => handleInvestmentChange(index, e.target.value)}
+                    min="0"
+                    step="100"
+                    style={{
+                      width: "100px",
+                      backgroundColor: "#374151",
+                      color: "white",
+                      border: "1px solid #4b5563",
+                      borderRadius: "0.25rem",
+                      padding: "0.375rem 0.5rem",
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div style={{
+            marginTop: "1.5rem",
+            padding: "0.75rem",
+            backgroundColor: "#059669",
+            borderRadius: "0.375rem",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}>
+            <span style={{ color: "white", fontWeight: "500" }}>Total Investment:</span>
+            <span style={{ color: "white", fontWeight: "600" }}>
+              ${investmentData.total_investment.toFixed(2)}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Business Details Component
 const BusinessDetailsView = ({ business, onBack }) => {
@@ -523,56 +753,120 @@ const getBusinessIcon = (business) => {
 };
 
 const BusinessOverview = ({ business, onBack }) => {
+  // State variables for generating and displaying data
   const [showSupplyChain, setShowSupplyChain] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showInvestForm, setShowInvestForm] = useState(false);
+  const [supplyChainData, setSupplyChainData] = useState(null);
+  const [isGeneratingInvestment, setIsGeneratingInvestment] = useState(false);
+  const [investmentData, setInvestmentData] = useState(null);
 
-  // Mock supply chain data
-  const supplyChainData = [
-    { name: "Raw Materials", value: 35, color: "#10b981" },
-    { name: "Equipment", value: 25, color: "#f59e0b" },
-    { name: "Services", value: 30, color: "#8b5cf6" },
-    { name: "Distribution", value: 10, color: "#ef4444" },
-  ];
+  // Base API URL - change this to match your FastAPI server
+  const API_BASE_URL = 'http://localhost:8000';
 
-  // Mock ETF data
-  const etfData = {
-    name: "Local Business Growth ETF",
-    ticker: "LBGX",
-    value: 250,
-    returnRate: 5.2,
-    risk: "Medium",
-    color: "#3b82f6",
-    holdings: [
-      { name: business.name, percentage: 15 },
-      { name: "Regional Supply Co.", percentage: 25 },
-      { name: "Local Tech Services", percentage: 20 },
-      { name: "Community Banking", percentage: 18 },
-      { name: "Small Business Support", percentage: 12 },
-      { name: "Other Holdings", percentage: 10 },
-    ],
-  };
-
+  // Handle supply chain generation
   const handleGenerateSupplyChain = () => {
     setIsGenerating(true);
-    // Simulate API call with timeout
-    setTimeout(() => {
+    const bus_id = business.business_id;
+    
+    console.log(`Calling supply chain API for business ID: ${bus_id}`);
+    
+    // Try both methods - query params and request body
+    fetch(`${API_BASE_URL}/generate-supply-chain/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ business_id: bus_id }),
+    })
+    .then(response => {
+      console.log('Supply chain API response status:', response.status);
+      if (!response.ok) {
+        console.log('Response not OK:', response.statusText);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("Supply chain data received:", data);
+      setSupplyChainData(data);
       setShowSupplyChain(true);
       setIsGenerating(false);
-    }, 1500);
+    })
+    .catch(error => {
+      console.error('Error generating supply chain:', error);
+      
+      // Fallback to mock data if API call fails
+      const mockData = {
+        supply_chain_text: "Raw Materials, Component Manufacturing, Assembly, Distribution, Retail, Consumer",
+        supply_chain_list: ["Raw Materials", "Component Manufacturing", "Assembly", "Distribution", "Retail", "Consumer"]
+      };
+      console.log("Using mock supply chain data:", mockData);
+      setSupplyChainData(mockData);
+      setShowSupplyChain(true);
+      setIsGenerating(false);
+    });
   };
-
-  // Custom tooltip for the pie chart
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="p-2 bg-white border rounded shadow">
-          <p className="font-semibold">{payload[0].name}</p>
-          <p>{payload[0].value}%</p>
-        </div>
-      );
+  
+  // Handle investment generation
+  const handleGenerateInvestment = () => {
+    if (!supplyChainData || !supplyChainData.supply_chain_text) {
+      console.error('No supply chain data available');
+      return;
     }
-    return null;
+    
+    setIsGeneratingInvestment(true);
+    
+    // Prepare investment parameters
+    const params = {
+      supply_chain: supplyChainData.supply_chain_text,
+      investment_amount: Math.round(business.annual_revenue * 0.1),
+      min_investment_score: 0.60,
+      risk_aversion: 2.0,
+      max_weight_per_stock: 0.3
+    };
+    
+    console.log('Calling investment API with params:', params);
+    
+    // Call the backend API to generate investment - with request body
+    fetch(`${API_BASE_URL}/generate-investment/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params),
+    })
+    .then(response => {
+      console.log('Investment API response status:', response.status);
+      if (!response.ok) {
+        console.log('Response not OK:', response.statusText);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("Investment data received:", data);
+      setInvestmentData(data);
+      setIsGeneratingInvestment(false);
+    })
+    .catch(error => {
+      console.error('Error generating investment:', error);
+      
+      // Fallback to mock data
+      const mockInvestmentData = {
+        portfolio: [
+          { ticker: "AMZN", price: 130.50, investment: 2500 },
+          { ticker: "WMT", price: 165.75, investment: 2000 },
+          { ticker: "TGT", price: 145.20, investment: 1500 },
+          { ticker: "COST", price: 550.30, investment: 1300 },
+          { ticker: "UPS", price: 180.10, investment: 1000 },
+          { ticker: "FDX", price: 250.30, investment: 1000 },
+          { ticker: "SHOP", price: 75.60, investment: 700 },
+        ],
+        total_investment: 10000,
+      };
+      console.log("Using mock investment data:", mockInvestmentData);
+      setInvestmentData(mockInvestmentData);
+      setIsGeneratingInvestment(false);
+    });
   };
 
   return (
@@ -891,495 +1185,110 @@ const BusinessOverview = ({ business, onBack }) => {
             >
               Supply Chain Analysis
             </h3>
+            
+            {/* Supply Chain List */}
+            {supplyChainData && supplyChainData.supply_chain_list && (
+              <SupplyChainList supplyChainList={supplyChainData.supply_chain_list} />
+            )}
+            
             <div
-              className="flex justify-center mb-6 h-64"
               style={{
-                display: "flex",
-                justifyContent: "center",
-                marginBottom: "2rem",
-                height: "24rem",
-                position: "relative",
+                marginTop: "1.5rem",
                 padding: "1rem",
-              }}
-            >
-              <PieChart width={500} height={400}>
-                <Pie
-                  data={supplyChainData}
-                  cx={250}
-                  cy={200}
-                  labelLine={false}
-                  outerRadius={120}
-                  innerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                  animationBegin={0}
-                  animationDuration={1500}
-                  animationEasing="ease-out"
-                >
-                  {supplyChainData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.color}
-                      style={{
-                        filter: 'drop-shadow(0px 0px 6px rgba(0,0,0,0.2))',
-                        cursor: 'pointer',
-                      }}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div style={{
-                          backgroundColor: '#1a1a1a',
-                          padding: '0.75rem',
-                          border: '1px solid #374151',
-                          borderRadius: '0.5rem',
-                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                        }}>
-                          <p style={{ 
-                            color: payload[0].payload.color,
-                            fontWeight: '600',
-                            marginBottom: '0.25rem',
-                          }}>
-                            {payload[0].name}
-                          </p>
-                          <p style={{ 
-                            color: 'white',
-                            fontSize: '1.125rem',
-                            fontWeight: '600',
-                          }}>
-                            {payload[0].value}%
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Legend
-                  verticalAlign="bottom"
-                  height={36}
-                  content={({ payload }) => (
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      gap: '1.5rem',
-                      marginTop: '1rem',
-                    }}>
-                      {payload.map((entry, index) => (
-                        <div
-                          key={`legend-${index}`}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                          }}
-                        >
-                          <div style={{
-                            width: '0.75rem',
-                            height: '0.75rem',
-                            backgroundColor: entry.color,
-                            borderRadius: '50%',
-                            boxShadow: '0 0 6px rgba(0,0,0,0.2)',
-                          }} />
-                          <span style={{
-                            color: '#9ca3af',
-                            fontSize: '0.875rem',
-                            fontWeight: '500',
-                          }}>
-                            {entry.value}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                />
-              </PieChart>
-            </div>
-
-            <div
-              className="space-y-2 mb-4"
-              style={{
-                marginBottom: "1.5rem",
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.75rem",
-              }}
-            >
-              {supplyChainData.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex justify-between items-center p-3 bg-gray-50 rounded-md border-l-4"
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "0.75rem",
-                    backgroundColor: "#111827",
-                    borderRadius: "0.375rem",
-                    borderLeft: `4px solid ${item.color}`,
-                    border: "1px solid #374151",
-                  }}
-                >
-                  <div>
-                    <h4 className="font-semibold" style={{ fontWeight: "600", color: "white" }}>
-                      {item.name}
-                    </h4>
-                    <p
-                      className="text-gray-600 text-sm"
-                      style={{ color: "#9ca3af", fontSize: "0.875rem" }}
-                    >
-                      {item.value}% of supply chain
-                    </p>
-                  </div>
-                  <div
-                    className="w-4 h-4 rounded-full"
-                    style={{
-                      width: "1rem",
-                      height: "1rem",
-                      borderRadius: "9999px",
-                      backgroundColor: item.color,
-                    }}
-                  ></div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* ETF Information */}
-          <div
-            className="bg-white p-4 rounded-lg shadow mb-6"
-            style={{
-              backgroundColor: "black",
-              padding: "1rem",
-              borderRadius: "0.5rem",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              marginBottom: "1.5rem",
-              border: "1px solid #374151",
-            }}
-          >
-            <h3
-              className="text-lg font-semibold mb-4"
-              style={{
-                fontSize: "18px",
-                fontWeight: "600",
-                marginBottom: "1rem",
-                color: "white",
-              }}
-            >
-              ETF Investment Option
-            </h3>
-
-            <div
-              className="flex justify-between items-start mb-4 bg-gray-50 p-4 rounded-md"
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                marginBottom: "1rem",
                 backgroundColor: "#111827",
-                padding: "1rem",
-                borderRadius: "0.375rem",
+                borderRadius: "0.5rem",
                 border: "1px solid #374151",
               }}
             >
-              <div>
-                <h4
-                  className="font-semibold mb-1"
-                  style={{ fontWeight: "600", marginBottom: "0.25rem", color: "white" }}
-                >
-                  {etfData.name} ({etfData.ticker})
-                </h4>
-                <p
-                  className="text-gray-600 text-sm"
-                  style={{ color: "#9ca3af", fontSize: "0.875rem" }}
-                >
-                  Risk Level:
-                  <span
-                    style={{
-                      marginLeft: "0.25rem",
-                      padding: "0.125rem 0.5rem",
-                      borderRadius: "9999px",
-                      fontSize: "0.75rem",
-                      fontWeight: "500",
-                      backgroundColor:
-                        etfData.risk === "Low"
-                          ? "#dcfce7"
-                          : etfData.risk === "Medium"
-                            ? "#fef9c3"
-                            : "#fee2e2",
-                      color:
-                        etfData.risk === "Low"
-                          ? "#166534"
-                          : etfData.risk === "Medium"
-                            ? "#854d0e"
-                            : "#991b1b",
-                    }}
-                  >
-                    {etfData.risk}
-                  </span>
-                </p>
-              </div>
-              <div className="text-right" style={{ textAlign: "right" }}>
-                <p
-                  className="text-green-600 font-semibold"
-                  style={{ color: "#34d399", fontWeight: "600" }}
-                >
-                  {etfData.returnRate}% Return Rate
-                </p>
-                <p
-                  className="text-gray-600 text-sm"
-                  style={{ color: "#9ca3af", fontSize: "0.875rem" }}
-                >
-                  Value: ${etfData.value}
-                </p>
-              </div>
-            </div>
-
-            <p
-              className="text-gray-700 mb-4"
-              style={{ color: "#9ca3af", marginBottom: "1rem" }}
-            >
-              This ETF includes {business.name} along with other local
-              businesses in a diversified portfolio designed to support
-              community economic growth.
-            </p>
-
-            <div className="mt-4" style={{ marginTop: "1rem" }}>
               <h4
-                className="text-base font-semibold mb-2"
                 style={{
-                  fontSize: "1rem",
+                  fontSize: "16px",
                   fontWeight: "600",
-                  marginBottom: "0.5rem",
+                  marginBottom: "0.75rem",
                   color: "white",
                 }}
               >
-                ETF Holdings
+                Supply Chain Details
               </h4>
-              <div
-                className="space-y-1"
+              <p
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.25rem",
+                  color: "#9ca3af",
+                  fontSize: "14px",
+                  lineHeight: "1.6",
+                  marginBottom: "1rem",
                 }}
               >
-                {etfData.holdings.map((holding, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between py-2 border-b last:border-b-0"
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      padding: "0.5rem 0",
-                      borderBottom:
-                        index === etfData.holdings.length - 1
-                          ? "none"
-                          : "1px solid #374151",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontWeight:
-                          holding.name === business.name ? "500" : "normal",
-                        color:
-                          holding.name === business.name
-                            ? "#2563eb"
-                            : "white",
-                      }}
-                    >
-                      {holding.name}
-                      {holding.name === business.name && " (Current Business)"}
-                    </span>
-                    <span style={{ color: "white" }}>{holding.percentage}%</span>
-                  </div>
-                ))}
-              </div>
+                {business.name}'s supply chain involves several key components that work together
+                to deliver products/services to the end customers. Each node represents a critical
+                stage in the process, from raw materials to the final consumer interaction.
+              </p>
             </div>
-          </div>
-
-          {/* Invest Now Button */}
-          <div
-            className="text-center my-8"
-            style={{ textAlign: "center", margin: "2rem 0" }}
-          >
-            {!showInvestForm ? (
-              <button
-                onClick={() => setShowInvestForm(true)}
-                className="py-4 px-8 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-lg transition transform hover:scale-105"
-                style={{
-                  padding: "1rem 2rem",
-                  backgroundColor: "#10b981",
-                  color: "white",
-                  fontWeight: "600",
-                  borderRadius: "0.5rem",
-                  fontSize: "1.125rem",
-                  transition: "all 0.2s",
-                  transform: "scale(1)",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-                onMouseOver={(e) => {
-                  e.target.style.backgroundColor = "#047857";
-                  e.target.style.transform = "scale(1.05)";
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.backgroundColor = "#10b981";
-                  e.target.style.transform = "scale(1)";
-                }}
-              >
-                Invest Now
-              </button>
-            ) : (
-              <div
-                className="bg-white p-6 rounded-lg shadow-lg max-w-lg mx-auto"
-                style={{
-                  backgroundColor: "black",
-                  padding: "1.5rem",
-                  borderRadius: "0.5rem",
-                  boxShadow:
-                    "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                  maxWidth: "32rem",
-                  margin: "0 auto",
-                  border: "1px solid #374151",
-                }}
-              >
-                <h3
-                  className="text-xl font-semibold mb-4"
+            
+            {/* Generate Investment Button */}
+            {!investmentData && (
+              <div style={{ textAlign: "center", marginTop: "2rem" }}>
+                <button
+                  onClick={handleGenerateInvestment}
+                  disabled={isGeneratingInvestment}
                   style={{
-                    fontSize: "1.25rem",
-                    fontWeight: "600",
-                    marginBottom: "1rem",
+                    padding: "0.75rem 1.5rem",
+                    borderRadius: "0.5rem",
+                    backgroundColor: isGeneratingInvestment ? "#9ca3af" : "#10b981",
                     color: "white",
+                    border: "none",
+                    fontWeight: "600",
+                    cursor: isGeneratingInvestment ? "default" : "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
                   }}
                 >
-                  Invest in {business.name}
-                </h3>
-
-                <div className="mb-4" style={{ marginBottom: "1rem" }}>
-                  <label
-                    className="block text-gray-600 mb-2"
-                    style={{
-                      display: "block",
-                      color: "#9ca3af",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    Investment Amount ($)
-                  </label>
-                  <input
-                    type="number"
-                    defaultValue={Math.round(business.annual_revenue * 0.1)}
-                    min="100"
-                    step="100"
-                    className="w-full p-3 border border-gray-300 rounded-md"
-                    style={{
-                      width: "100%",
-                      padding: "0.75rem",
-                      border: "1px solid #374151",
-                      borderRadius: "0.375rem",
-                      backgroundColor: "black",
-                      color: "white",
-                    }}
-                  />
-                </div>
-
-                <div
-                  className="bg-blue-50 p-4 rounded-md mb-4"
-                  style={{
-                    backgroundColor: "#111827",
-                    padding: "1rem",
-                    borderRadius: "0.375rem",
-                    marginBottom: "1rem",
-                    border: "1px solid #374151",
-                  }}
-                >
-                  <h4
-                    className="text-blue-800 font-semibold mb-2"
-                    style={{
-                      color: "#60a5fa",
-                      fontWeight: "600",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    Investment Summary
-                  </h4>
-                  <p
-                    className="text-gray-700 text-sm mb-1"
-                    style={{
-                      color: "#9ca3af",
-                      fontSize: "0.875rem",
-                      marginBottom: "0.25rem",
-                    }}
-                  >
-                    Expected Return: 12-15% Annual
-                  </p>
-                  <p
-                    className="text-gray-700 text-sm"
-                    style={{
-                      color: "#9ca3af",
-                      fontSize: "0.875rem",
-                    }}
-                  >
-                    Term: 24-36 months
-                  </p>
-                </div>
-
-                <div
-                  className="flex gap-4"
-                  style={{ display: "flex", gap: "1rem" }}
-                >
-                  <button
-                    onClick={() => setShowInvestForm(false)}
-                    className="flex-1 py-3 border border-gray-300 text-gray-600 font-medium rounded-md hover:bg-gray-50"
-                    style={{
-                      flex: 1,
-                      padding: "0.75rem",
-                      border: "1px solid #374151",
-                      color: "#9ca3af",
-                      fontWeight: "500",
-                      borderRadius: "0.375rem",
-                      backgroundColor: "black",
-                      cursor: "pointer",
-                    }}
-                    onMouseOver={(e) => {
-                      e.target.style.backgroundColor = "#111827";
-                    }}
-                    onMouseOut={(e) => {
-                      e.target.style.backgroundColor = "black";
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => alert("Investment submitted successfully!")}
-                    className="flex-1 py-3 bg-green-600 text-white font-medium rounded-md hover:bg-green-700"
-                    style={{
-                      flex: 1,
-                      padding: "0.75rem",
-                      backgroundColor: "#10b981",
-                      color: "white",
-                      fontWeight: "500",
-                      borderRadius: "0.375rem",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                    onMouseOver={(e) => {
-                      e.target.style.backgroundColor = "#047857";
-                    }}
-                    onMouseOut={(e) => {
-                      e.target.style.backgroundColor = "#10b981";
-                    }}
-                  >
-                    Confirm Investment
-                  </button>
-                </div>
+                  {isGeneratingInvestment ? (
+                    <>
+                      <svg
+                        className="animate-spin"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        style={{
+                          animation: "spin 1s linear infinite",
+                          height: "1rem",
+                          width: "1rem",
+                        }}
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          style={{ opacity: 0.25 }}
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          style={{ opacity: 0.75 }}
+                        ></path>
+                      </svg>
+                      Generating Investment Portfolio...
+                    </>
+                  ) : (
+                    "Generate Investment Portfolio"
+                  )}
+                </button>
               </div>
             )}
           </div>
+          
+          {/* Investment Portfolio Section */}
+          {investmentData && (
+            <EditableInvestmentPieChart 
+              investmentData={investmentData} 
+              setInvestmentData={setInvestmentData} 
+            />
+          )}
         </>
       )}
     </div>

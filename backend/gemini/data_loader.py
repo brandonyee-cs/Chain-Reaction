@@ -157,6 +157,7 @@ class SmallBusinessDataLoader:
             'AS': 'Discount Store',
             'ZFSTG': 'Fusion Cuisine'
         }
+    
         
         business_names = {
             "FWR": "The Flower Wall Rental Co.",
